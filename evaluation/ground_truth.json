@@ -1,0 +1,211 @@
+[
+  {
+    "id": 1,
+    "question": "Find students whose attendance is below 75%.",
+    "ground_truth_sql": "SELECT StudentName, Attendance FROM Student WHERE Attendance < 75;",
+    "direct_tables": ["Student"],
+    "direct_columns": ["Student.StudentName", "Student.Attendance"],
+    "structural_tables": [],
+    "structural_columns": [],
+    "all_required_tables": ["Student"],
+    "all_required_columns": ["Student.StudentName", "Student.Attendance"],
+    "required_relationships": []
+  },
+  {
+    "id": 2,
+    "question": "Show CSE students who scored above 80.",
+    "ground_truth_sql": "SELECT StudentName, Marks FROM Student WHERE Department = 'CSE' AND Marks > 80;",
+    "direct_tables": ["Student"],
+    "direct_columns": ["Student.StudentName", "Student.Department", "Student.Marks"],
+    "structural_tables": [],
+    "structural_columns": [],
+    "all_required_tables": ["Student"],
+    "all_required_columns": ["Student.StudentName", "Student.Department", "Student.Marks"],
+    "required_relationships": []
+  },
+  {
+    "id": 3,
+    "question": "List students enrolled in Database Management Systems.",
+    "ground_truth_sql": "SELECT Student.StudentName\nFROM Student\nJOIN Enrollment ON Student.StudentID = Enrollment.StudentID\nJOIN Course ON Enrollment.CourseID = Course.CourseID\nWHERE Course.CourseName = 'Database Management Systems';",
+    "direct_tables": ["Student", "Course"],
+    "direct_columns": ["Student.StudentName", "Course.CourseName"],
+    "structural_tables": ["Enrollment"],
+    "structural_columns": ["Student.StudentID", "Enrollment.StudentID", "Enrollment.CourseID", "Course.CourseID"],
+    "all_required_tables": ["Student", "Enrollment", "Course"],
+    "all_required_columns": [
+      "Student.StudentName",
+      "Course.CourseName",
+      "Student.StudentID",
+      "Enrollment.StudentID",
+      "Enrollment.CourseID",
+      "Course.CourseID"
+    ],
+    "required_relationships": [
+      {"from_table": "Enrollment", "from_column": "StudentID", "to_table": "Student", "to_column": "StudentID"},
+      {"from_table": "Enrollment", "from_column": "CourseID", "to_table": "Course", "to_column": "CourseID"}
+    ]
+  },
+  {
+    "id": 4,
+    "question": "Find the average marks of CSE students.",
+    "ground_truth_sql": "SELECT AVG(Marks) AS AverageMarks FROM Student WHERE Department = 'CSE';",
+    "direct_tables": ["Student"],
+    "direct_columns": ["Student.Marks", "Student.Department"],
+    "structural_tables": [],
+    "structural_columns": [],
+    "all_required_tables": ["Student"],
+    "all_required_columns": ["Student.Marks", "Student.Department"],
+    "required_relationships": []
+  },
+  {
+    "id": 5,
+    "question": "Show the names and grades of students enrolled in each course.",
+    "ground_truth_sql": "SELECT Student.StudentName, Enrollment.Grade, Course.CourseName\nFROM Student\nJOIN Enrollment ON Student.StudentID = Enrollment.StudentID\nJOIN Course ON Enrollment.CourseID = Course.CourseID;",
+    "direct_tables": ["Student", "Enrollment", "Course"],
+    "direct_columns": ["Student.StudentName", "Enrollment.Grade", "Course.CourseName"],
+    "structural_tables": [],
+    "structural_columns": ["Student.StudentID", "Enrollment.StudentID", "Enrollment.CourseID", "Course.CourseID"],
+    "all_required_tables": ["Student", "Enrollment", "Course"],
+    "all_required_columns": [
+      "Student.StudentName",
+      "Enrollment.Grade",
+      "Course.CourseName",
+      "Student.StudentID",
+      "Enrollment.StudentID",
+      "Enrollment.CourseID",
+      "Course.CourseID"
+    ],
+    "required_relationships": [
+      {"from_table": "Enrollment", "from_column": "StudentID", "to_table": "Student", "to_column": "StudentID"},
+      {"from_table": "Enrollment", "from_column": "CourseID", "to_table": "Course", "to_column": "CourseID"}
+    ]
+  },
+  {
+    "id": 6,
+    "question": "Find faculty members whose salary is above 80000.",
+    "ground_truth_sql": "SELECT FacultyName, Salary FROM Faculty WHERE Salary > 80000;",
+    "direct_tables": ["Faculty"],
+    "direct_columns": ["Faculty.FacultyName", "Faculty.Salary"],
+    "structural_tables": [],
+    "structural_columns": [],
+    "all_required_tables": ["Faculty"],
+    "all_required_columns": ["Faculty.FacultyName", "Faculty.Salary"],
+    "required_relationships": []
+  },
+  {
+    "id": 7,
+    "question": "Count students in each department.",
+    "ground_truth_sql": "SELECT Department, COUNT(*) AS StudentCount FROM Student GROUP BY Department;",
+    "direct_tables": ["Student"],
+    "direct_columns": ["Student.Department", "Student.StudentID"],
+    "structural_tables": [],
+    "structural_columns": [],
+    "all_required_tables": ["Student"],
+    "all_required_columns": ["Student.Department", "Student.StudentID"],
+    "required_relationships": []
+  },
+  {
+    "id": 8,
+    "question": "Show courses offered by the CSE department.",
+    "ground_truth_sql": "SELECT CourseID, CourseName, Credits FROM Course WHERE Department = 'CSE';",
+    "direct_tables": ["Course"],
+    "direct_columns": ["Course.CourseID", "Course.CourseName", "Course.Credits", "Course.Department"],
+    "structural_tables": [],
+    "structural_columns": [],
+    "all_required_tables": ["Course"],
+    "all_required_columns": ["Course.CourseID", "Course.CourseName", "Course.Credits", "Course.Department"],
+    "required_relationships": []
+  },
+  {
+    "id": 9,
+    "question": "Find the student with the highest marks.",
+    "ground_truth_sql": "SELECT StudentName, Marks FROM Student ORDER BY Marks DESC LIMIT 1;",
+    "direct_tables": ["Student"],
+    "direct_columns": ["Student.StudentName", "Student.Marks"],
+    "structural_tables": [],
+    "structural_columns": [],
+    "all_required_tables": ["Student"],
+    "all_required_columns": ["Student.StudentName", "Student.Marks"],
+    "required_relationships": []
+  },
+  {
+    "id": 10,
+    "question": "Show students and their grades using the enrollment table.",
+    "ground_truth_sql": "SELECT StudentID, CourseID, Grade FROM Enrollment;",
+    "direct_tables": ["Enrollment"],
+    "direct_columns": ["Enrollment.StudentID", "Enrollment.CourseID", "Enrollment.Grade"],
+    "structural_tables": [],
+    "structural_columns": [],
+    "all_required_tables": ["Enrollment"],
+    "all_required_columns": ["Enrollment.StudentID", "Enrollment.CourseID", "Enrollment.Grade"],
+    "required_relationships": []
+  },
+  {
+    "id": 11,
+    "question": "Find all faculty in the ECE department.",
+    "ground_truth_sql": "SELECT FacultyName, Department FROM Faculty WHERE Department = 'ECE';",
+    "direct_tables": ["Faculty"],
+    "direct_columns": ["Faculty.FacultyName", "Faculty.Department"],
+    "structural_tables": [],
+    "structural_columns": [],
+    "all_required_tables": ["Faculty"],
+    "all_required_columns": ["Faculty.FacultyName", "Faculty.Department"],
+    "required_relationships": []
+  },
+  {
+    "id": 12,
+    "question": "List courses that offer 4 credits.",
+    "ground_truth_sql": "SELECT CourseID, CourseName FROM Course WHERE Credits = 4;",
+    "direct_tables": ["Course"],
+    "direct_columns": ["Course.CourseID", "Course.CourseName", "Course.Credits"],
+    "structural_tables": [],
+    "structural_columns": [],
+    "all_required_tables": ["Course"],
+    "all_required_columns": ["Course.CourseID", "Course.CourseName", "Course.Credits"],
+    "required_relationships": []
+  },
+  {
+    "id": 13,
+    "question": "Find the minimum attendance among all students.",
+    "ground_truth_sql": "SELECT MIN(Attendance) AS MinAttendance FROM Student;",
+    "direct_tables": ["Student"],
+    "direct_columns": ["Student.Attendance"],
+    "structural_tables": [],
+    "structural_columns": [],
+    "all_required_tables": ["Student"],
+    "all_required_columns": ["Student.Attendance"],
+    "required_relationships": []
+  },
+  {
+    "id": 14,
+    "question": "Show all students enrolled in course CS101.",
+    "ground_truth_sql": "SELECT Student.StudentName, Enrollment.Grade\nFROM Student\nJOIN Enrollment ON Student.StudentID = Enrollment.StudentID\nWHERE Enrollment.CourseID = 'CS101';",
+    "direct_tables": ["Student", "Enrollment"],
+    "direct_columns": ["Student.StudentName", "Enrollment.CourseID", "Enrollment.Grade"],
+    "structural_tables": [],
+    "structural_columns": ["Student.StudentID", "Enrollment.StudentID"],
+    "all_required_tables": ["Student", "Enrollment"],
+    "all_required_columns": [
+      "Student.StudentName",
+      "Enrollment.CourseID",
+      "Enrollment.Grade",
+      "Student.StudentID",
+      "Enrollment.StudentID"
+    ],
+    "required_relationships": [
+      {"from_table": "Enrollment", "from_column": "StudentID", "to_table": "Student", "to_column": "StudentID"}
+    ]
+  },
+  {
+    "id": 15,
+    "question": "Find the total salary expenditure for the MECH faculty.",
+    "ground_truth_sql": "SELECT SUM(Salary) AS TotalSalary FROM Faculty WHERE Department = 'MECH';",
+    "direct_tables": ["Faculty"],
+    "direct_columns": ["Faculty.Salary", "Faculty.Department"],
+    "structural_tables": [],
+    "structural_columns": [],
+    "all_required_tables": ["Faculty"],
+    "all_required_columns": ["Faculty.Salary", "Faculty.Department"],
+    "required_relationships": []
+  }
+]

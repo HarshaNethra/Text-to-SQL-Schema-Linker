@@ -1,0 +1,1925 @@
+{
+  "summary": {
+    "prompt_tokens": {
+      "baseline": 757.08,
+      "proposed": 361.92
+    },
+    "schema_cols_sent": {
+      "baseline": 36.8,
+      "proposed": 7.84
+    },
+    "schema_reduction_pct": {
+      "baseline": 0.0,
+      "proposed": 73.4
+    },
+    "linking_latency_ms": {
+      "baseline": 0.0,
+      "proposed": 1077.26
+    },
+    "llm_latency_s": {
+      "baseline": 3.0,
+      "proposed": 2.9
+    },
+    "total_latency_s": {
+      "baseline": 3.0,
+      "proposed": 3.98
+    },
+    "macro_precision_pct": {
+      "baseline": 9.19,
+      "proposed": 36.02
+    },
+    "macro_recall_pct": {
+      "baseline": 100.0,
+      "proposed": 92.67
+    },
+    "macro_f1_pct": {
+      "baseline": 16.37,
+      "proposed": 46.74
+    },
+    "exec_accuracy_pct": {
+      "baseline": 68.0,
+      "proposed": 72.0
+    },
+    "exec_success_pct": {
+      "baseline": 100.0,
+      "proposed": 100.0
+    },
+    "tps": {
+      "baseline": 6.84,
+      "proposed": 7.1
+    }
+  },
+  "results": [
+    {
+      "db_id": "hr_1",
+      "question": "Display the first name and department name for each employee.",
+      "gt_sql": "SELECT T1.first_name ,  T2.department_name FROM employees AS T1 JOIN departments AS T2 ON T1.department_id  =  T2.department_id",
+      "gt_tables": [
+        "departments",
+        "employees"
+      ],
+      "gt_cols": [
+        "departments.DEPARTMENT_ID",
+        "departments.DEPARTMENT_NAME",
+        "employees.DEPARTMENT_ID",
+        "employees.FIRST_NAME"
+      ],
+      "prop_selected_tables": [
+        "employees",
+        "departments",
+        "countries",
+        "regions"
+      ],
+      "prop_selected_cols": [
+        "countries.country_name",
+        "departments.department_id",
+        "departments.department_name",
+        "departments.location_id",
+        "departments.manager_id",
+        "employees.department_id",
+        "employees.employee_id",
+        "employees.first_name",
+        "employees.last_name",
+        "regions.region_name"
+      ],
+      "baseline": {
+        "sql": "SELECT e.FIRST_NAME, d.DEPARTMENT_NAME FROM employees e LEFT JOIN departments d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID;",
+        "prompt_tokens": 823,
+        "schema_cols_sent": 35,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 5.114,
+        "total_latency_s": 5.114,
+        "precision_pct": 11.43,
+        "recall_pct": 100.0,
+        "f1_pct": 20.52,
+        "exec_success": true,
+        "result_correct": false,
+        "tps": 6.3
+      },
+      "proposed": {
+        "sql": "SELECT e.FIRST_NAME, d.DEPARTMENT_NAME FROM employees e JOIN departments d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID;",
+        "prompt_tokens": 422,
+        "schema_cols_sent": 10,
+        "schema_reduction_pct": 71.43,
+        "linking_latency_ms": 26063.6,
+        "llm_latency_s": 2.918,
+        "total_latency_s": 28.9813,
+        "precision_pct": 40.0,
+        "recall_pct": 100.0,
+        "f1_pct": 57.14,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 10.6,
+        "validation": {
+          "is_valid": true,
+          "repaired": true,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [
+            "Repaired missing essential column 'employees.EMPLOYEE_ID'.",
+            "Anchor tables disconnected in foreign key graph: countries, regions."
+          ],
+          "join_paths": [
+            {
+              "from_table": "employees",
+              "from_column": "DEPARTMENT_ID",
+              "to_table": "departments",
+              "to_column": "DEPARTMENT_ID"
+            }
+          ],
+          "disconnected_anchors": [
+            "countries",
+            "regions"
+          ]
+        }
+      }
+    },
+    {
+      "db_id": "hr_1",
+      "question": "What are the first name and department name of all employees?",
+      "gt_sql": "SELECT T1.first_name ,  T2.department_name FROM employees AS T1 JOIN departments AS T2 ON T1.department_id  =  T2.department_id",
+      "gt_tables": [
+        "departments",
+        "employees"
+      ],
+      "gt_cols": [
+        "departments.DEPARTMENT_ID",
+        "departments.DEPARTMENT_NAME",
+        "employees.DEPARTMENT_ID",
+        "employees.FIRST_NAME"
+      ],
+      "prop_selected_tables": [
+        "employees",
+        "departments",
+        "countries",
+        "regions"
+      ],
+      "prop_selected_cols": [
+        "countries.country_name",
+        "departments.department_id",
+        "departments.department_name",
+        "departments.location_id",
+        "departments.manager_id",
+        "employees.department_id",
+        "employees.first_name",
+        "employees.last_name",
+        "regions.region_name"
+      ],
+      "baseline": {
+        "sql": "SELECT e.FIRST_NAME, d.DEPARTMENT_NAME FROM employees e LEFT JOIN departments d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID;",
+        "prompt_tokens": 824,
+        "schema_cols_sent": 35,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.778,
+        "total_latency_s": 2.778,
+        "precision_pct": 11.43,
+        "recall_pct": 100.0,
+        "f1_pct": 20.52,
+        "exec_success": true,
+        "result_correct": false,
+        "tps": 11.5
+      },
+      "proposed": {
+        "sql": "SELECT e.FIRST_NAME, d.DEPARTMENT_NAME FROM employees e LEFT JOIN departments d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID;",
+        "prompt_tokens": 408,
+        "schema_cols_sent": 9,
+        "schema_reduction_pct": 74.29,
+        "linking_latency_ms": 28.5,
+        "llm_latency_s": 3.337,
+        "total_latency_s": 3.3652,
+        "precision_pct": 44.44,
+        "recall_pct": 100.0,
+        "f1_pct": 61.53,
+        "exec_success": true,
+        "result_correct": false,
+        "tps": 9.6,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [
+            "Anchor tables disconnected in foreign key graph: countries, regions."
+          ],
+          "join_paths": [
+            {
+              "from_table": "employees",
+              "from_column": "DEPARTMENT_ID",
+              "to_table": "departments",
+              "to_column": "DEPARTMENT_ID"
+            }
+          ],
+          "disconnected_anchors": [
+            "countries",
+            "regions"
+          ]
+        }
+      }
+    },
+    {
+      "db_id": "hr_1",
+      "question": "List the full name (first and last name), and salary for those employees who earn below 6000.",
+      "gt_sql": "SELECT first_name ,  last_name ,  salary FROM employees WHERE salary  <  6000",
+      "gt_tables": [
+        "employees"
+      ],
+      "gt_cols": [
+        "employees.FIRST_NAME",
+        "employees.LAST_NAME",
+        "employees.SALARY"
+      ],
+      "prop_selected_tables": [
+        "employees",
+        "jobs",
+        "regions",
+        "departments",
+        "countries"
+      ],
+      "prop_selected_cols": [
+        "countries.country_name",
+        "countries.region_id",
+        "departments.department_name",
+        "employees.first_name",
+        "employees.last_name",
+        "employees.salary",
+        "jobs.max_salary",
+        "jobs.min_salary",
+        "regions.region_id",
+        "regions.region_name"
+      ],
+      "baseline": {
+        "sql": "SELECT FIRST_NAME, LAST_NAME, SALARY FROM employees WHERE SALARY < 6000;",
+        "prompt_tokens": 836,
+        "schema_cols_sent": 35,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.762,
+        "total_latency_s": 2.762,
+        "precision_pct": 8.57,
+        "recall_pct": 100.0,
+        "f1_pct": 15.79,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 8.3
+      },
+      "proposed": {
+        "sql": "SELECT FIRST_NAME, LAST_NAME, SALARY FROM employees WHERE SALARY < 6000;",
+        "prompt_tokens": 456,
+        "schema_cols_sent": 10,
+        "schema_reduction_pct": 71.43,
+        "linking_latency_ms": 22.8,
+        "llm_latency_s": 2.952,
+        "total_latency_s": 2.9744,
+        "precision_pct": 30.0,
+        "recall_pct": 100.0,
+        "f1_pct": 46.15,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 7.8,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [
+            "Anchor tables disconnected in foreign key graph: employees, departments, jobs."
+          ],
+          "join_paths": [
+            {
+              "from_table": "countries",
+              "from_column": "REGION_ID",
+              "to_table": "regions",
+              "to_column": "REGION_ID"
+            }
+          ],
+          "disconnected_anchors": [
+            "employees",
+            "departments",
+            "jobs"
+          ]
+        }
+      }
+    },
+    {
+      "db_id": "hr_1",
+      "question": "What are the full names and salaries for any employees earning less than 6000?",
+      "gt_sql": "SELECT first_name ,  last_name ,  salary FROM employees WHERE salary  <  6000",
+      "gt_tables": [
+        "employees"
+      ],
+      "gt_cols": [
+        "employees.FIRST_NAME",
+        "employees.LAST_NAME",
+        "employees.SALARY"
+      ],
+      "prop_selected_tables": [
+        "employees",
+        "departments",
+        "countries",
+        "regions"
+      ],
+      "prop_selected_cols": [
+        "countries.country_name",
+        "departments.department_id",
+        "departments.department_name",
+        "departments.manager_id",
+        "employees.department_id",
+        "employees.employee_id",
+        "employees.first_name",
+        "employees.job_id",
+        "employees.last_name",
+        "employees.manager_id",
+        "employees.phone_number",
+        "regions.region_name"
+      ],
+      "baseline": {
+        "sql": "SELECT FIRST_NAME || ' ' || LAST_NAME, SALARY FROM employees WHERE SALARY < 6000;",
+        "prompt_tokens": 831,
+        "schema_cols_sent": 35,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.772,
+        "total_latency_s": 2.772,
+        "precision_pct": 8.57,
+        "recall_pct": 100.0,
+        "f1_pct": 15.79,
+        "exec_success": true,
+        "result_correct": false,
+        "tps": 9.4
+      },
+      "proposed": {
+        "sql": "SELECT FIRST_NAME, LAST_NAME FROM employees WHERE SALARY < 6000",
+        "prompt_tokens": 454,
+        "schema_cols_sent": 12,
+        "schema_reduction_pct": 65.71,
+        "linking_latency_ms": 29.9,
+        "llm_latency_s": 2.845,
+        "total_latency_s": 2.8746,
+        "precision_pct": 16.67,
+        "recall_pct": 66.67,
+        "f1_pct": 26.67,
+        "exec_success": true,
+        "result_correct": false,
+        "tps": 6.7,
+        "validation": {
+          "is_valid": true,
+          "repaired": true,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [
+            "Repaired missing essential column 'employees.JOB_ID'.",
+            "Repaired missing essential column 'employees.EMPLOYEE_ID'.",
+            "Anchor tables disconnected in foreign key graph: countries, regions."
+          ],
+          "join_paths": [
+            {
+              "from_table": "employees",
+              "from_column": "DEPARTMENT_ID",
+              "to_table": "departments",
+              "to_column": "DEPARTMENT_ID"
+            }
+          ],
+          "disconnected_anchors": [
+            "countries",
+            "regions"
+          ]
+        }
+      }
+    },
+    {
+      "db_id": "hr_1",
+      "question": "Display the first name, and department number for all employees whose last name is \"McEwen\".",
+      "gt_sql": "SELECT first_name ,  department_id FROM employees WHERE last_name  =  'McEwen'",
+      "gt_tables": [
+        "employees"
+      ],
+      "gt_cols": [
+        "employees.DEPARTMENT_ID",
+        "employees.FIRST_NAME",
+        "employees.LAST_NAME"
+      ],
+      "prop_selected_tables": [
+        "employees",
+        "departments",
+        "countries",
+        "regions"
+      ],
+      "prop_selected_cols": [
+        "countries.country_name",
+        "departments.department_id",
+        "departments.department_name",
+        "departments.location_id",
+        "departments.manager_id",
+        "employees.department_id",
+        "employees.first_name",
+        "employees.last_name",
+        "employees.phone_number",
+        "regions.region_name"
+      ],
+      "baseline": {
+        "sql": "SELECT FIRST_NAME, DEPARTMENT_ID FROM employees WHERE LAST_NAME = 'McEwen';",
+        "prompt_tokens": 832,
+        "schema_cols_sent": 35,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.663,
+        "total_latency_s": 2.663,
+        "precision_pct": 8.57,
+        "recall_pct": 100.0,
+        "f1_pct": 15.79,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 7.5
+      },
+      "proposed": {
+        "sql": "SELECT FIRST_NAME, DEPARTMENT_ID FROM employees WHERE LAST_NAME = 'McEwen';",
+        "prompt_tokens": 428,
+        "schema_cols_sent": 10,
+        "schema_reduction_pct": 71.43,
+        "linking_latency_ms": 29.0,
+        "llm_latency_s": 2.827,
+        "total_latency_s": 2.8561,
+        "precision_pct": 30.0,
+        "recall_pct": 100.0,
+        "f1_pct": 46.15,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 7.1,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [
+            "Anchor tables disconnected in foreign key graph: countries, regions."
+          ],
+          "join_paths": [
+            {
+              "from_table": "employees",
+              "from_column": "DEPARTMENT_ID",
+              "to_table": "departments",
+              "to_column": "DEPARTMENT_ID"
+            }
+          ],
+          "disconnected_anchors": [
+            "countries",
+            "regions"
+          ]
+        }
+      }
+    },
+    {
+      "db_id": "car_1",
+      "question": "How many continents are there?",
+      "gt_sql": "SELECT count(*) FROM CONTINENTS;",
+      "gt_tables": [
+        "continents"
+      ],
+      "gt_cols": [],
+      "prop_selected_tables": [
+        "continents"
+      ],
+      "prop_selected_cols": [
+        "continents.contid",
+        "continents.continent"
+      ],
+      "baseline": {
+        "sql": "SELECT count(*) FROM continents",
+        "prompt_tokens": 507,
+        "schema_cols_sent": 23,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.755,
+        "total_latency_s": 2.755,
+        "precision_pct": 8.7,
+        "recall_pct": 100.0,
+        "f1_pct": 16.01,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 1.8
+      },
+      "proposed": {
+        "sql": "SELECT count(*) FROM continents",
+        "prompt_tokens": 254,
+        "schema_cols_sent": 2,
+        "schema_reduction_pct": 91.3,
+        "linking_latency_ms": 64.1,
+        "llm_latency_s": 2.707,
+        "total_latency_s": 2.7708,
+        "precision_pct": 100.0,
+        "recall_pct": 100.0,
+        "f1_pct": 100.0,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 1.8,
+        "validation": {
+          "is_valid": true,
+          "repaired": true,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [
+            "Repaired missing essential column 'continents.ContId'."
+          ],
+          "join_paths": [],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "car_1",
+      "question": "What is the number of continents?",
+      "gt_sql": "SELECT count(*) FROM CONTINENTS;",
+      "gt_tables": [
+        "continents"
+      ],
+      "gt_cols": [],
+      "prop_selected_tables": [
+        "continents"
+      ],
+      "prop_selected_cols": [
+        "continents.contid",
+        "continents.continent"
+      ],
+      "baseline": {
+        "sql": "SELECT count(*) FROM continents",
+        "prompt_tokens": 508,
+        "schema_cols_sent": 23,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.861,
+        "total_latency_s": 2.861,
+        "precision_pct": 8.7,
+        "recall_pct": 100.0,
+        "f1_pct": 16.01,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 1.7
+      },
+      "proposed": {
+        "sql": "SELECT count(*) FROM continents",
+        "prompt_tokens": 255,
+        "schema_cols_sent": 2,
+        "schema_reduction_pct": 91.3,
+        "linking_latency_ms": 25.4,
+        "llm_latency_s": 2.845,
+        "total_latency_s": 2.8701,
+        "precision_pct": 100.0,
+        "recall_pct": 100.0,
+        "f1_pct": 100.0,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 1.8,
+        "validation": {
+          "is_valid": true,
+          "repaired": true,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [
+            "Repaired missing essential column 'continents.ContId'."
+          ],
+          "join_paths": [],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "car_1",
+      "question": "How many countries does each continent have? List the continent id, continent name and the number of countries.",
+      "gt_sql": "SELECT T1.ContId ,  T1.Continent ,  count(*) FROM CONTINENTS AS T1 JOIN COUNTRIES AS T2 ON T1.ContId  =  T2.Continent GROUP BY T1.ContId;",
+      "gt_tables": [
+        "continents",
+        "countries"
+      ],
+      "gt_cols": [
+        "continents.ContId",
+        "continents.Continent",
+        "countries.Continent"
+      ],
+      "prop_selected_tables": [
+        "car_makers",
+        "car_names",
+        "model_list",
+        "countries",
+        "continents"
+      ],
+      "prop_selected_cols": [
+        "car_makers.country",
+        "car_makers.fullname",
+        "car_makers.id",
+        "car_names.makeid",
+        "car_names.model",
+        "continents.contid",
+        "continents.continent",
+        "countries.continent",
+        "countries.countryid",
+        "countries.countryname",
+        "model_list.maker",
+        "model_list.model",
+        "model_list.modelid"
+      ],
+      "baseline": {
+        "sql": "SELECT T1.ContId, T1.Continent, COUNT(T2.CountryId) FROM continents AS T1 JOIN countries AS T2 ON T1.ContId = T2.Continent GROUP BY T1.ContId, T1.Continent",
+        "prompt_tokens": 522,
+        "schema_cols_sent": 23,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.666,
+        "total_latency_s": 2.666,
+        "precision_pct": 13.04,
+        "recall_pct": 100.0,
+        "f1_pct": 23.07,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 19.9
+      },
+      "proposed": {
+        "sql": "SELECT T1.ContId, T1.Continent, COUNT(T2.CountryId) FROM continents AS T1 JOIN countries AS T2 ON T1.ContId = T2.Continent GROUP BY T1.ContId, T1.Continent",
+        "prompt_tokens": 431,
+        "schema_cols_sent": 13,
+        "schema_reduction_pct": 43.48,
+        "linking_latency_ms": 27.6,
+        "llm_latency_s": 2.931,
+        "total_latency_s": 2.9585,
+        "precision_pct": 23.08,
+        "recall_pct": 100.0,
+        "f1_pct": 37.5,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 18.1,
+        "validation": {
+          "is_valid": true,
+          "repaired": true,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [
+            "Repaired missing essential column 'car_makers.FullName'."
+          ],
+          "join_paths": [
+            {
+              "from_table": "car_names",
+              "from_column": "Model",
+              "to_table": "model_list",
+              "to_column": "Model"
+            },
+            {
+              "from_table": "model_list",
+              "from_column": "Maker",
+              "to_table": "car_makers",
+              "to_column": "Id"
+            },
+            {
+              "from_table": "car_makers",
+              "from_column": "Country",
+              "to_table": "countries",
+              "to_column": "CountryId"
+            },
+            {
+              "from_table": "countries",
+              "from_column": "Continent",
+              "to_table": "continents",
+              "to_column": "ContId"
+            }
+          ],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "car_1",
+      "question": "For each continent, list its id, name, and how many countries it has?",
+      "gt_sql": "SELECT T1.ContId ,  T1.Continent ,  count(*) FROM CONTINENTS AS T1 JOIN COUNTRIES AS T2 ON T1.ContId  =  T2.Continent GROUP BY T1.ContId;",
+      "gt_tables": [
+        "continents",
+        "countries"
+      ],
+      "gt_cols": [
+        "continents.ContId",
+        "continents.Continent",
+        "countries.Continent"
+      ],
+      "prop_selected_tables": [
+        "car_makers",
+        "car_names",
+        "model_list",
+        "countries",
+        "continents"
+      ],
+      "prop_selected_cols": [
+        "car_makers.country",
+        "car_makers.fullname",
+        "car_makers.id",
+        "car_names.makeid",
+        "car_names.model",
+        "continents.contid",
+        "continents.continent",
+        "countries.continent",
+        "countries.countryid",
+        "countries.countryname",
+        "model_list.maker",
+        "model_list.model",
+        "model_list.modelid"
+      ],
+      "baseline": {
+        "sql": "SELECT T1.ContId, T1.Continent, COUNT(T2.CountryId) FROM continents AS T1 JOIN countries AS T2 ON T1.ContId = T2.Continent GROUP BY T1.ContId, T1.Continent",
+        "prompt_tokens": 518,
+        "schema_cols_sent": 23,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.566,
+        "total_latency_s": 2.566,
+        "precision_pct": 13.04,
+        "recall_pct": 100.0,
+        "f1_pct": 23.07,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 20.7
+      },
+      "proposed": {
+        "sql": "SELECT T1.ContId, T1.Continent, COUNT(T2.CountryId) FROM continents AS T1 JOIN countries AS T2 ON T1.ContId = T2.Continent GROUP BY T1.ContId, T1.Continent",
+        "prompt_tokens": 427,
+        "schema_cols_sent": 13,
+        "schema_reduction_pct": 43.48,
+        "linking_latency_ms": 18.4,
+        "llm_latency_s": 2.751,
+        "total_latency_s": 2.7693,
+        "precision_pct": 23.08,
+        "recall_pct": 100.0,
+        "f1_pct": 37.5,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 19.3,
+        "validation": {
+          "is_valid": true,
+          "repaired": true,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [
+            "Repaired missing essential column 'car_makers.FullName'."
+          ],
+          "join_paths": [
+            {
+              "from_table": "car_names",
+              "from_column": "Model",
+              "to_table": "model_list",
+              "to_column": "Model"
+            },
+            {
+              "from_table": "model_list",
+              "from_column": "Maker",
+              "to_table": "car_makers",
+              "to_column": "Id"
+            },
+            {
+              "from_table": "car_makers",
+              "from_column": "Country",
+              "to_table": "countries",
+              "to_column": "CountryId"
+            },
+            {
+              "from_table": "countries",
+              "from_column": "Continent",
+              "to_table": "continents",
+              "to_column": "ContId"
+            }
+          ],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "car_1",
+      "question": "How many countries are listed?",
+      "gt_sql": "SELECT count(*) FROM COUNTRIES;",
+      "gt_tables": [
+        "countries"
+      ],
+      "gt_cols": [],
+      "prop_selected_tables": [
+        "countries"
+      ],
+      "prop_selected_cols": [
+        "countries.continent",
+        "countries.countryid",
+        "countries.countryname"
+      ],
+      "baseline": {
+        "sql": "SELECT count(*) FROM countries",
+        "prompt_tokens": 507,
+        "schema_cols_sent": 23,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.761,
+        "total_latency_s": 2.761,
+        "precision_pct": 13.04,
+        "recall_pct": 100.0,
+        "f1_pct": 23.07,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 1.8
+      },
+      "proposed": {
+        "sql": "SELECT COUNT(*) FROM countries;",
+        "prompt_tokens": 262,
+        "schema_cols_sent": 3,
+        "schema_reduction_pct": 86.96,
+        "linking_latency_ms": 31.9,
+        "llm_latency_s": 2.972,
+        "total_latency_s": 3.0043,
+        "precision_pct": 100.0,
+        "recall_pct": 100.0,
+        "f1_pct": 100.0,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 2.0,
+        "validation": {
+          "is_valid": true,
+          "repaired": true,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [
+            "Repaired missing essential column 'countries.Continent'.",
+            "Repaired missing essential column 'countries.CountryId'."
+          ],
+          "join_paths": [],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "flight_2",
+      "question": "Which country does Airline \"JetBlue Airways\" belong to?",
+      "gt_sql": "SELECT Country FROM AIRLINES WHERE Airline  =  \"JetBlue Airways\"",
+      "gt_tables": [
+        "airlines"
+      ],
+      "gt_cols": [
+        "airlines.Airline",
+        "airlines.Country"
+      ],
+      "prop_selected_tables": [
+        "flights",
+        "airports",
+        "airlines"
+      ],
+      "prop_selected_cols": [
+        "airlines.airline",
+        "airlines.country",
+        "airports.airportcode",
+        "airports.airportname",
+        "airports.city",
+        "airports.country",
+        "airports.countryabbrev",
+        "flights.airline",
+        "flights.destairport",
+        "flights.flightno"
+      ],
+      "baseline": {
+        "sql": "SELECT Country FROM airlines WHERE Airline = 'JetBlue Airways'",
+        "prompt_tokens": 377,
+        "schema_cols_sent": 13,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.832,
+        "total_latency_s": 2.832,
+        "precision_pct": 15.38,
+        "recall_pct": 100.0,
+        "f1_pct": 26.66,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 4.2
+      },
+      "proposed": {
+        "sql": "SELECT Country FROM airlines WHERE Airline = 'JetBlue Airways';",
+        "prompt_tokens": 359,
+        "schema_cols_sent": 10,
+        "schema_reduction_pct": 23.08,
+        "linking_latency_ms": 58.8,
+        "llm_latency_s": 2.91,
+        "total_latency_s": 2.9691,
+        "precision_pct": 20.0,
+        "recall_pct": 100.0,
+        "f1_pct": 33.33,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 4.1,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [],
+          "join_paths": [
+            {
+              "from_table": "flights",
+              "from_column": "DestAirport",
+              "to_table": "airports",
+              "to_column": "AirportCode"
+            }
+          ],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "flight_2",
+      "question": "What country is Jetblue Airways affiliated with?",
+      "gt_sql": "SELECT Country FROM AIRLINES WHERE Airline  =  \"JetBlue Airways\"",
+      "gt_tables": [
+        "airlines"
+      ],
+      "gt_cols": [
+        "airlines.Airline",
+        "airlines.Country"
+      ],
+      "prop_selected_tables": [
+        "airports"
+      ],
+      "prop_selected_cols": [
+        "airports.airportname",
+        "airports.city",
+        "airports.country",
+        "airports.countryabbrev"
+      ],
+      "baseline": {
+        "sql": "SELECT Country FROM airlines WHERE Airline = 'Jetblue Airways';",
+        "prompt_tokens": 374,
+        "schema_cols_sent": 13,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.768,
+        "total_latency_s": 2.768,
+        "precision_pct": 15.38,
+        "recall_pct": 100.0,
+        "f1_pct": 26.66,
+        "exec_success": true,
+        "result_correct": false,
+        "tps": 4.3
+      },
+      "proposed": {
+        "sql": "SELECT Country FROM airports WHERE AirportName LIKE '%Jetblue Airways%'",
+        "prompt_tokens": 273,
+        "schema_cols_sent": 4,
+        "schema_reduction_pct": 69.23,
+        "linking_latency_ms": 26.9,
+        "llm_latency_s": 3.252,
+        "total_latency_s": 3.2792,
+        "precision_pct": 0.0,
+        "recall_pct": 0.0,
+        "f1_pct": 0.0,
+        "exec_success": true,
+        "result_correct": false,
+        "tps": 4.0,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [],
+          "join_paths": [],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "flight_2",
+      "question": "What is the abbreviation of Airline \"JetBlue Airways\"?",
+      "gt_sql": "SELECT Abbreviation FROM AIRLINES WHERE Airline  =  \"JetBlue Airways\"",
+      "gt_tables": [
+        "airlines"
+      ],
+      "gt_cols": [
+        "airlines.Abbreviation",
+        "airlines.Airline"
+      ],
+      "prop_selected_tables": [
+        "airlines"
+      ],
+      "prop_selected_cols": [
+        "airlines.abbreviation",
+        "airlines.airline",
+        "airlines.country",
+        "airlines.uid"
+      ],
+      "baseline": {
+        "sql": "SELECT Abbreviation FROM airlines WHERE Airline = 'JetBlue Airways'",
+        "prompt_tokens": 376,
+        "schema_cols_sent": 13,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 3.276,
+        "total_latency_s": 3.276,
+        "precision_pct": 15.38,
+        "recall_pct": 100.0,
+        "f1_pct": 26.66,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 4.0
+      },
+      "proposed": {
+        "sql": "SELECT Abbreviation FROM airlines WHERE Airline = 'JetBlue Airways'",
+        "prompt_tokens": 273,
+        "schema_cols_sent": 4,
+        "schema_reduction_pct": 69.23,
+        "linking_latency_ms": 27.9,
+        "llm_latency_s": 3.046,
+        "total_latency_s": 3.0734,
+        "precision_pct": 50.0,
+        "recall_pct": 100.0,
+        "f1_pct": 66.67,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 4.3,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [],
+          "join_paths": [],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "flight_2",
+      "question": "Which abbreviation corresponds to Jetblue Airways?",
+      "gt_sql": "SELECT Abbreviation FROM AIRLINES WHERE Airline  =  \"JetBlue Airways\"",
+      "gt_tables": [
+        "airlines"
+      ],
+      "gt_cols": [
+        "airlines.Abbreviation",
+        "airlines.Airline"
+      ],
+      "prop_selected_tables": [
+        "airlines"
+      ],
+      "prop_selected_cols": [
+        "airlines.abbreviation",
+        "airlines.airline",
+        "airlines.country",
+        "airlines.uid"
+      ],
+      "baseline": {
+        "sql": "SELECT Abbreviation FROM airlines WHERE Airline = 'Jetblue Airways';",
+        "prompt_tokens": 373,
+        "schema_cols_sent": 13,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 3.177,
+        "total_latency_s": 3.177,
+        "precision_pct": 15.38,
+        "recall_pct": 100.0,
+        "f1_pct": 26.66,
+        "exec_success": true,
+        "result_correct": false,
+        "tps": 4.1
+      },
+      "proposed": {
+        "sql": "SELECT Abbreviation FROM airlines WHERE Airline = 'Jetblue Airways';",
+        "prompt_tokens": 270,
+        "schema_cols_sent": 4,
+        "schema_reduction_pct": 69.23,
+        "linking_latency_ms": 21.9,
+        "llm_latency_s": 2.548,
+        "total_latency_s": 2.5696,
+        "precision_pct": 50.0,
+        "recall_pct": 100.0,
+        "f1_pct": 66.67,
+        "exec_success": true,
+        "result_correct": false,
+        "tps": 5.1,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [],
+          "join_paths": [],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "flight_2",
+      "question": "List all airline names and their abbreviations in \"USA\".",
+      "gt_sql": "SELECT Airline ,  Abbreviation FROM AIRLINES WHERE Country  =  \"USA\"",
+      "gt_tables": [
+        "airlines"
+      ],
+      "gt_cols": [
+        "airlines.Abbreviation",
+        "airlines.Airline",
+        "airlines.Country"
+      ],
+      "prop_selected_tables": [
+        "airlines"
+      ],
+      "prop_selected_cols": [
+        "airlines.abbreviation",
+        "airlines.airline",
+        "airlines.country",
+        "airlines.uid"
+      ],
+      "baseline": {
+        "sql": "SELECT Airline, Abbreviation FROM airlines WHERE Country = 'USA';",
+        "prompt_tokens": 376,
+        "schema_cols_sent": 13,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.65,
+        "total_latency_s": 2.65,
+        "precision_pct": 23.08,
+        "recall_pct": 100.0,
+        "f1_pct": 37.5,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 4.9
+      },
+      "proposed": {
+        "sql": "SELECT Airline, Abbreviation FROM airlines WHERE Country = 'USA';",
+        "prompt_tokens": 273,
+        "schema_cols_sent": 4,
+        "schema_reduction_pct": 69.23,
+        "linking_latency_ms": 26.6,
+        "llm_latency_s": 2.743,
+        "total_latency_s": 2.7692,
+        "precision_pct": 75.0,
+        "recall_pct": 100.0,
+        "f1_pct": 85.71,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 4.7,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [],
+          "join_paths": [],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "world_1",
+      "question": "What are the names of all the countries that became independent after 1950?",
+      "gt_sql": "SELECT Name FROM country WHERE IndepYear  >  1950",
+      "gt_tables": [
+        "country"
+      ],
+      "gt_cols": [
+        "country.IndepYear",
+        "country.Name"
+      ],
+      "prop_selected_tables": [
+        "country"
+      ],
+      "prop_selected_cols": [
+        "country.headofstate",
+        "country.indepyear",
+        "country.localname",
+        "country.name"
+      ],
+      "baseline": {
+        "sql": "SELECT Name FROM country WHERE IndepYear > 1950;",
+        "prompt_tokens": 522,
+        "schema_cols_sent": 24,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 3.071,
+        "total_latency_s": 3.071,
+        "precision_pct": 8.33,
+        "recall_pct": 100.0,
+        "f1_pct": 15.38,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 4.9
+      },
+      "proposed": {
+        "sql": "SELECT Name FROM country WHERE IndepYear > 1950;",
+        "prompt_tokens": 293,
+        "schema_cols_sent": 4,
+        "schema_reduction_pct": 83.33,
+        "linking_latency_ms": 50.7,
+        "llm_latency_s": 2.818,
+        "total_latency_s": 2.8685,
+        "precision_pct": 50.0,
+        "recall_pct": 100.0,
+        "f1_pct": 66.67,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 5.3,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [],
+          "join_paths": [],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "world_1",
+      "question": "Give the names of the nations that were founded after 1950.",
+      "gt_sql": "SELECT Name FROM country WHERE IndepYear  >  1950",
+      "gt_tables": [
+        "country"
+      ],
+      "gt_cols": [
+        "country.IndepYear",
+        "country.Name"
+      ],
+      "prop_selected_tables": [
+        "country"
+      ],
+      "prop_selected_cols": [
+        "country.headofstate",
+        "country.localname",
+        "country.name"
+      ],
+      "baseline": {
+        "sql": "SELECT Name FROM country WHERE IndepYear > 1950;",
+        "prompt_tokens": 520,
+        "schema_cols_sent": 24,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.66,
+        "total_latency_s": 2.66,
+        "precision_pct": 8.33,
+        "recall_pct": 100.0,
+        "f1_pct": 15.38,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 5.6
+      },
+      "proposed": {
+        "sql": "SELECT Name FROM country WHERE IndepYear > 1950;",
+        "prompt_tokens": 282,
+        "schema_cols_sent": 3,
+        "schema_reduction_pct": 87.5,
+        "linking_latency_ms": 30.1,
+        "llm_latency_s": 2.94,
+        "total_latency_s": 2.9701,
+        "precision_pct": 33.33,
+        "recall_pct": 50.0,
+        "f1_pct": 40.0,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 5.1,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [],
+          "join_paths": [],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "world_1",
+      "question": "How many countries have a republic as their form of government?",
+      "gt_sql": "SELECT count(*) FROM country WHERE GovernmentForm  =  \"Republic\"",
+      "gt_tables": [
+        "country"
+      ],
+      "gt_cols": [
+        "country.GovernmentForm"
+      ],
+      "prop_selected_tables": [
+        "country"
+      ],
+      "prop_selected_cols": [
+        "country.governmentform",
+        "country.headofstate",
+        "country.localname",
+        "country.name",
+        "country.population"
+      ],
+      "baseline": {
+        "sql": "SELECT COUNT(*) FROM country WHERE GovernmentForm LIKE '%Republic%';",
+        "prompt_tokens": 516,
+        "schema_cols_sent": 24,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 3.074,
+        "total_latency_s": 3.074,
+        "precision_pct": 4.17,
+        "recall_pct": 100.0,
+        "f1_pct": 8.01,
+        "exec_success": true,
+        "result_correct": false,
+        "tps": 3.9
+      },
+      "proposed": {
+        "sql": "SELECT COUNT(*) FROM country WHERE GovernmentForm LIKE '%Republic%';",
+        "prompt_tokens": 296,
+        "schema_cols_sent": 5,
+        "schema_reduction_pct": 79.17,
+        "linking_latency_ms": 29.1,
+        "llm_latency_s": 2.735,
+        "total_latency_s": 2.7644,
+        "precision_pct": 20.0,
+        "recall_pct": 100.0,
+        "f1_pct": 33.33,
+        "exec_success": true,
+        "result_correct": false,
+        "tps": 4.4,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [],
+          "join_paths": [],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "world_1",
+      "question": "How many countries have governments that are republics?",
+      "gt_sql": "SELECT count(*) FROM country WHERE GovernmentForm  =  \"Republic\"",
+      "gt_tables": [
+        "country"
+      ],
+      "gt_cols": [
+        "country.GovernmentForm"
+      ],
+      "prop_selected_tables": [
+        "country"
+      ],
+      "prop_selected_cols": [
+        "country.governmentform",
+        "country.localname",
+        "country.name",
+        "country.population"
+      ],
+      "baseline": {
+        "sql": "SELECT COUNT(*) FROM country WHERE GovernmentForm LIKE '%Republic%';",
+        "prompt_tokens": 513,
+        "schema_cols_sent": 24,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.868,
+        "total_latency_s": 2.868,
+        "precision_pct": 4.17,
+        "recall_pct": 100.0,
+        "f1_pct": 8.01,
+        "exec_success": true,
+        "result_correct": false,
+        "tps": 4.2
+      },
+      "proposed": {
+        "sql": "SELECT COUNT(*) FROM country WHERE GovernmentForm LIKE '%Republic%';",
+        "prompt_tokens": 281,
+        "schema_cols_sent": 4,
+        "schema_reduction_pct": 83.33,
+        "linking_latency_ms": 32.4,
+        "llm_latency_s": 2.734,
+        "total_latency_s": 2.7661,
+        "precision_pct": 25.0,
+        "recall_pct": 100.0,
+        "f1_pct": 40.0,
+        "exec_success": true,
+        "result_correct": false,
+        "tps": 4.4,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [],
+          "join_paths": [],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "world_1",
+      "question": "What is the total surface area of the countries in the Caribbean region?",
+      "gt_sql": "SELECT sum(SurfaceArea) FROM country WHERE Region  =  \"Caribbean\"",
+      "gt_tables": [
+        "country"
+      ],
+      "gt_cols": [
+        "country.Region",
+        "country.SurfaceArea"
+      ],
+      "prop_selected_tables": [
+        "countrylanguage",
+        "country"
+      ],
+      "prop_selected_cols": [
+        "country.code",
+        "country.continent",
+        "country.headofstate",
+        "country.population",
+        "country.region",
+        "country.surfacearea",
+        "countrylanguage.countrycode",
+        "countrylanguage.isofficial",
+        "countrylanguage.language",
+        "countrylanguage.percentage"
+      ],
+      "baseline": {
+        "sql": "SELECT SUM(SurfaceArea) FROM country WHERE Region = 'Caribbean';",
+        "prompt_tokens": 518,
+        "schema_cols_sent": 24,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.868,
+        "total_latency_s": 2.868,
+        "precision_pct": 8.33,
+        "recall_pct": 100.0,
+        "f1_pct": 15.38,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 4.9
+      },
+      "proposed": {
+        "sql": "SELECT SUM(SurfaceArea) FROM country WHERE Region = 'Caribbean';",
+        "prompt_tokens": 367,
+        "schema_cols_sent": 10,
+        "schema_reduction_pct": 58.33,
+        "linking_latency_ms": 24.9,
+        "llm_latency_s": 2.639,
+        "total_latency_s": 2.6641,
+        "precision_pct": 20.0,
+        "recall_pct": 100.0,
+        "f1_pct": 33.33,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 5.3,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [],
+          "join_paths": [
+            {
+              "from_table": "countrylanguage",
+              "from_column": "CountryCode",
+              "to_table": "country",
+              "to_column": "Code"
+            }
+          ],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "sakila_1",
+      "question": "How many different last names do the actors and actresses have?",
+      "gt_sql": "SELECT count(DISTINCT last_name) FROM actor",
+      "gt_tables": [
+        "actor"
+      ],
+      "gt_cols": [
+        "actor.last_name"
+      ],
+      "prop_selected_tables": [
+        "film",
+        "language",
+        "actor",
+        "film_actor"
+      ],
+      "prop_selected_cols": [
+        "actor.actor_id",
+        "actor.first_name",
+        "actor.last_name",
+        "actor.last_update",
+        "film.film_id",
+        "film.original_language_id",
+        "film_actor.actor_id",
+        "film_actor.film_id",
+        "film_actor.last_update",
+        "language.language_id",
+        "language.last_update",
+        "language.name"
+      ],
+      "baseline": {
+        "sql": "SELECT COUNT(DISTINCT last_name) FROM actor;",
+        "prompt_tokens": 1552,
+        "schema_cols_sent": 89,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.855,
+        "total_latency_s": 2.855,
+        "precision_pct": 1.12,
+        "recall_pct": 100.0,
+        "f1_pct": 2.22,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 4.2
+      },
+      "proposed": {
+        "sql": "SELECT COUNT(DISTINCT last_name) FROM actor;",
+        "prompt_tokens": 458,
+        "schema_cols_sent": 12,
+        "schema_reduction_pct": 86.52,
+        "linking_latency_ms": 112.2,
+        "llm_latency_s": 2.861,
+        "total_latency_s": 2.9732,
+        "precision_pct": 8.33,
+        "recall_pct": 100.0,
+        "f1_pct": 15.38,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 4.2,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [],
+          "join_paths": [
+            {
+              "from_table": "language",
+              "from_column": "language_id",
+              "to_table": "film",
+              "to_column": "original_language_id"
+            },
+            {
+              "from_table": "film",
+              "from_column": "film_id",
+              "to_table": "film_actor",
+              "to_column": "film_id"
+            },
+            {
+              "from_table": "film_actor",
+              "from_column": "actor_id",
+              "to_table": "actor",
+              "to_column": "actor_id"
+            }
+          ],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "sakila_1",
+      "question": "Count the number of different last names actors have.",
+      "gt_sql": "SELECT count(DISTINCT last_name) FROM actor",
+      "gt_tables": [
+        "actor"
+      ],
+      "gt_cols": [
+        "actor.last_name"
+      ],
+      "prop_selected_tables": [
+        "film",
+        "language",
+        "actor",
+        "film_actor"
+      ],
+      "prop_selected_cols": [
+        "actor.actor_id",
+        "actor.first_name",
+        "actor.last_name",
+        "actor.last_update",
+        "film.film_id",
+        "film.original_language_id",
+        "film_actor.actor_id",
+        "film_actor.film_id",
+        "film_actor.last_update",
+        "language.language_id",
+        "language.last_update",
+        "language.name"
+      ],
+      "baseline": {
+        "sql": "SELECT COUNT(DISTINCT last_name) FROM actor;",
+        "prompt_tokens": 1550,
+        "schema_cols_sent": 89,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 3.689,
+        "total_latency_s": 3.689,
+        "precision_pct": 1.12,
+        "recall_pct": 100.0,
+        "f1_pct": 2.22,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 3.3
+      },
+      "proposed": {
+        "sql": "SELECT COUNT(DISTINCT last_name) FROM actor;",
+        "prompt_tokens": 456,
+        "schema_cols_sent": 12,
+        "schema_reduction_pct": 86.52,
+        "linking_latency_ms": 39.6,
+        "llm_latency_s": 3.143,
+        "total_latency_s": 3.1824,
+        "precision_pct": 8.33,
+        "recall_pct": 100.0,
+        "f1_pct": 15.38,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 3.8,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [],
+          "join_paths": [
+            {
+              "from_table": "language",
+              "from_column": "language_id",
+              "to_table": "film",
+              "to_column": "original_language_id"
+            },
+            {
+              "from_table": "film",
+              "from_column": "film_id",
+              "to_table": "film_actor",
+              "to_column": "film_id"
+            },
+            {
+              "from_table": "film_actor",
+              "from_column": "actor_id",
+              "to_table": "actor",
+              "to_column": "actor_id"
+            }
+          ],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "sakila_1",
+      "question": "What is the most popular first name of the actors?",
+      "gt_sql": "SELECT first_name FROM actor GROUP BY first_name ORDER BY count(*) DESC LIMIT 1",
+      "gt_tables": [
+        "actor"
+      ],
+      "gt_cols": [
+        "actor.first_name"
+      ],
+      "prop_selected_tables": [
+        "film",
+        "language",
+        "actor",
+        "film_actor"
+      ],
+      "prop_selected_cols": [
+        "actor.actor_id",
+        "actor.first_name",
+        "actor.last_name",
+        "actor.last_update",
+        "film.film_id",
+        "film.original_language_id",
+        "film_actor.actor_id",
+        "film_actor.film_id",
+        "film_actor.last_update",
+        "language.language_id",
+        "language.last_update",
+        "language.name"
+      ],
+      "baseline": {
+        "sql": "SELECT first_name FROM actor GROUP BY first_name ORDER BY COUNT(*) DESC LIMIT 1;",
+        "prompt_tokens": 1551,
+        "schema_cols_sent": 89,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 3.466,
+        "total_latency_s": 3.466,
+        "precision_pct": 1.12,
+        "recall_pct": 100.0,
+        "f1_pct": 2.22,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 5.8
+      },
+      "proposed": {
+        "sql": "SELECT first_name FROM actor GROUP BY first_name ORDER BY COUNT(*) DESC LIMIT 1;",
+        "prompt_tokens": 457,
+        "schema_cols_sent": 12,
+        "schema_reduction_pct": 86.52,
+        "linking_latency_ms": 37.4,
+        "llm_latency_s": 2.943,
+        "total_latency_s": 2.9807,
+        "precision_pct": 8.33,
+        "recall_pct": 100.0,
+        "f1_pct": 15.38,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 6.8,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [],
+          "join_paths": [
+            {
+              "from_table": "language",
+              "from_column": "language_id",
+              "to_table": "film",
+              "to_column": "original_language_id"
+            },
+            {
+              "from_table": "film",
+              "from_column": "film_id",
+              "to_table": "film_actor",
+              "to_column": "film_id"
+            },
+            {
+              "from_table": "film_actor",
+              "from_column": "actor_id",
+              "to_table": "actor",
+              "to_column": "actor_id"
+            }
+          ],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "sakila_1",
+      "question": "Return the most common first name among all actors.",
+      "gt_sql": "SELECT first_name FROM actor GROUP BY first_name ORDER BY count(*) DESC LIMIT 1",
+      "gt_tables": [
+        "actor"
+      ],
+      "gt_cols": [
+        "actor.first_name"
+      ],
+      "prop_selected_tables": [
+        "film",
+        "language",
+        "actor",
+        "film_actor"
+      ],
+      "prop_selected_cols": [
+        "actor.actor_id",
+        "actor.first_name",
+        "actor.last_name",
+        "actor.last_update",
+        "film.film_id",
+        "film.original_language_id",
+        "film_actor.actor_id",
+        "film_actor.film_id",
+        "film_actor.last_update",
+        "language.language_id",
+        "language.last_update",
+        "language.name"
+      ],
+      "baseline": {
+        "sql": "SELECT first_name FROM actor GROUP BY first_name ORDER BY COUNT(*) DESC LIMIT 1;",
+        "prompt_tokens": 1550,
+        "schema_cols_sent": 89,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.96,
+        "total_latency_s": 2.96,
+        "precision_pct": 1.12,
+        "recall_pct": 100.0,
+        "f1_pct": 2.22,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 6.8
+      },
+      "proposed": {
+        "sql": "SELECT first_name FROM actor GROUP BY first_name ORDER BY COUNT(*) DESC LIMIT 1;",
+        "prompt_tokens": 456,
+        "schema_cols_sent": 12,
+        "schema_reduction_pct": 86.52,
+        "linking_latency_ms": 33.3,
+        "llm_latency_s": 3.14,
+        "total_latency_s": 3.1734,
+        "precision_pct": 8.33,
+        "recall_pct": 100.0,
+        "f1_pct": 15.38,
+        "exec_success": true,
+        "result_correct": true,
+        "tps": 6.4,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [],
+          "join_paths": [
+            {
+              "from_table": "language",
+              "from_column": "language_id",
+              "to_table": "film",
+              "to_column": "original_language_id"
+            },
+            {
+              "from_table": "film",
+              "from_column": "film_id",
+              "to_table": "film_actor",
+              "to_column": "film_id"
+            },
+            {
+              "from_table": "film_actor",
+              "from_column": "actor_id",
+              "to_table": "actor",
+              "to_column": "actor_id"
+            }
+          ],
+          "disconnected_anchors": []
+        }
+      }
+    },
+    {
+      "db_id": "sakila_1",
+      "question": "What is the most popular full name of the actors?",
+      "gt_sql": "SELECT first_name ,  last_name FROM actor GROUP BY first_name ,  last_name ORDER BY count(*) DESC LIMIT 1",
+      "gt_tables": [
+        "actor"
+      ],
+      "gt_cols": [
+        "actor.first_name",
+        "actor.last_name"
+      ],
+      "prop_selected_tables": [
+        "film",
+        "language",
+        "actor",
+        "film_actor"
+      ],
+      "prop_selected_cols": [
+        "actor.actor_id",
+        "actor.first_name",
+        "actor.last_name",
+        "actor.last_update",
+        "film.film_id",
+        "film.original_language_id",
+        "film_actor.actor_id",
+        "film_actor.film_id",
+        "film_actor.last_update",
+        "language.language_id",
+        "language.last_update",
+        "language.name"
+      ],
+      "baseline": {
+        "sql": "SELECT first_name || ' ' || last_name AS full_name\nFROM actor\nGROUP BY first_name, last_name\nORDER BY COUNT(*) DESC, first_name, last_name\nLIMIT 1;",
+        "prompt_tokens": 1551,
+        "schema_cols_sent": 89,
+        "schema_reduction_pct": 0.0,
+        "linking_latency_ms": 0.0,
+        "llm_latency_s": 2.974,
+        "total_latency_s": 2.974,
+        "precision_pct": 2.25,
+        "recall_pct": 100.0,
+        "f1_pct": 4.4,
+        "exec_success": true,
+        "result_correct": false,
+        "tps": 17.1
+      },
+      "proposed": {
+        "sql": "SELECT first_name || ' ' || last_name AS full_name\nFROM actor\nJOIN film_actor ON actor.actor_id = film_actor.actor_id\nGROUP BY actor.actor_id, full_name\nORDER BY COUNT(film_actor.film_id) DESC\nLIMIT 1;",
+        "prompt_tokens": 457,
+        "schema_cols_sent": 12,
+        "schema_reduction_pct": 86.52,
+        "linking_latency_ms": 38.5,
+        "llm_latency_s": 2.933,
+        "total_latency_s": 2.9711,
+        "precision_pct": 16.67,
+        "recall_pct": 100.0,
+        "f1_pct": 28.58,
+        "exec_success": true,
+        "result_correct": false,
+        "tps": 24.9,
+        "validation": {
+          "is_valid": true,
+          "repaired": false,
+          "fallback_used": false,
+          "errors": [],
+          "warnings": [],
+          "join_paths": [
+            {
+              "from_table": "language",
+              "from_column": "language_id",
+              "to_table": "film",
+              "to_column": "original_language_id"
+            },
+            {
+              "from_table": "film",
+              "from_column": "film_id",
+              "to_table": "film_actor",
+              "to_column": "film_id"
+            },
+            {
+              "from_table": "film_actor",
+              "from_column": "actor_id",
+              "to_table": "actor",
+              "to_column": "actor_id"
+            }
+          ],
+          "disconnected_anchors": []
+        }
+      }
+    }
+  ]
+}

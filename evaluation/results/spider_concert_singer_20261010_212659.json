@@ -1,0 +1,312 @@
+{
+  "summary": {
+    "total_queries": 5,
+    "target_db": "concert_singer",
+    "llm_provider": "mock",
+    "avg_schema_reduction_pct": 68.57,
+    "avg_token_reduction_pct": 27.16,
+    "baseline_execution_accuracy_pct": 100.0,
+    "proposed_execution_accuracy_pct": 100.0,
+    "baseline_result_correctness_pct": 0.0,
+    "proposed_result_correctness_pct": 20.0,
+    "avg_table_recall_pct": 100.0,
+    "avg_direct_column_recall_pct": 90.0
+  },
+  "results": [
+    {
+      "id": 1,
+      "db_id": "concert_singer",
+      "question": "How many singers do we have?",
+      "ground_truth_sql": "SELECT count(*) FROM singer",
+      "full_columns": 21,
+      "reduced_columns": 6,
+      "schema_reduction_pct": 71.43,
+      "token_reduction_pct": 27.73,
+      "linking_time": 30.8352,
+      "baseline": {
+        "sql": "SELECT count(*) FROM stadium;",
+        "input_tokens": 357,
+        "llm_latency": 0.0002,
+        "exec_latency": 0.0006,
+        "total_latency": 0.0008,
+        "exec_success": true,
+        "result_correct": false,
+        "error": null
+      },
+      "proposed": {
+        "sql": "SELECT count(*) FROM singer_in_concert;",
+        "input_tokens": 258,
+        "llm_latency": 0.0002,
+        "exec_latency": 0.0021,
+        "total_latency": 30.8375,
+        "exec_success": true,
+        "result_correct": false,
+        "error": null,
+        "reduced_schema": {
+          "singer_in_concert": {
+            "Singer_ID": "TEXT",
+            "concert_ID": "INT"
+          },
+          "singer": {
+            "Singer_ID": "INT",
+            "Song_release_year": "TEXT",
+            "Name": "TEXT",
+            "Song_Name": "TEXT"
+          }
+        }
+      },
+      "schema_metrics": {
+        "selected_columns_count": 6,
+        "direct_columns_count": 0,
+        "structural_columns_count": 0,
+        "all_required_columns_count": 0,
+        "direct_col_precision": 0.0,
+        "direct_col_recall": 1.0,
+        "executable_col_precision": 0.0,
+        "executable_col_recall": 1.0,
+        "table_precision": 0.5,
+        "table_recall": 1.0,
+        "missing_direct_cols": [],
+        "missing_structural_cols": [],
+        "missing_tables": []
+      }
+    },
+    {
+      "id": 2,
+      "db_id": "concert_singer",
+      "question": "What is the total number of singers?",
+      "ground_truth_sql": "SELECT count(*) FROM singer",
+      "full_columns": 21,
+      "reduced_columns": 6,
+      "schema_reduction_pct": 71.43,
+      "token_reduction_pct": 28.41,
+      "linking_time": 0.5993,
+      "baseline": {
+        "sql": "SELECT count(*) FROM stadium;",
+        "input_tokens": 359,
+        "llm_latency": 0.0001,
+        "exec_latency": 0.0016,
+        "total_latency": 0.0017,
+        "exec_success": true,
+        "result_correct": false,
+        "error": null
+      },
+      "proposed": {
+        "sql": "SELECT count(*) FROM singer;",
+        "input_tokens": 257,
+        "llm_latency": 0.0,
+        "exec_latency": 0.0035,
+        "total_latency": 0.6028,
+        "exec_success": true,
+        "result_correct": true,
+        "error": null,
+        "reduced_schema": {
+          "singer": {
+            "Singer_ID": "INT",
+            "Is_male": "BOOL",
+            "Name": "TEXT",
+            "Song_Name": "TEXT"
+          },
+          "singer_in_concert": {
+            "Singer_ID": "TEXT",
+            "concert_ID": "INT"
+          }
+        }
+      },
+      "schema_metrics": {
+        "selected_columns_count": 6,
+        "direct_columns_count": 0,
+        "structural_columns_count": 0,
+        "all_required_columns_count": 0,
+        "direct_col_precision": 0.0,
+        "direct_col_recall": 1.0,
+        "executable_col_precision": 0.0,
+        "executable_col_recall": 1.0,
+        "table_precision": 0.5,
+        "table_recall": 1.0,
+        "missing_direct_cols": [],
+        "missing_structural_cols": [],
+        "missing_tables": []
+      }
+    },
+    {
+      "id": 3,
+      "db_id": "concert_singer",
+      "question": "Show name, country, age for all singers ordered by age from the oldest to the youngest.",
+      "ground_truth_sql": "SELECT name ,  country ,  age FROM singer ORDER BY age DESC",
+      "full_columns": 21,
+      "reduced_columns": 7,
+      "schema_reduction_pct": 66.67,
+      "token_reduction_pct": 26.61,
+      "linking_time": 0.6659,
+      "baseline": {
+        "sql": "SELECT count(*) FROM stadium;",
+        "input_tokens": 372,
+        "llm_latency": 0.0001,
+        "exec_latency": 0.0013,
+        "total_latency": 0.0014,
+        "exec_success": true,
+        "result_correct": false,
+        "error": null
+      },
+      "proposed": {
+        "sql": "SELECT count(*) FROM singer;",
+        "input_tokens": 273,
+        "llm_latency": 0.0001,
+        "exec_latency": 0.0024,
+        "total_latency": 0.6684,
+        "exec_success": true,
+        "result_correct": false,
+        "error": null,
+        "reduced_schema": {
+          "singer": {
+            "Singer_ID": "INT",
+            "Age": "INT",
+            "Country": "TEXT",
+            "Song_Name": "TEXT",
+            "Name": "TEXT"
+          },
+          "singer_in_concert": {
+            "Singer_ID": "TEXT",
+            "concert_ID": "INT"
+          }
+        }
+      },
+      "schema_metrics": {
+        "selected_columns_count": 7,
+        "direct_columns_count": 3,
+        "structural_columns_count": 0,
+        "all_required_columns_count": 3,
+        "direct_col_precision": 0.4286,
+        "direct_col_recall": 1.0,
+        "executable_col_precision": 0.4286,
+        "executable_col_recall": 1.0,
+        "table_precision": 0.5,
+        "table_recall": 1.0,
+        "missing_direct_cols": [],
+        "missing_structural_cols": [],
+        "missing_tables": []
+      }
+    },
+    {
+      "id": 4,
+      "db_id": "concert_singer",
+      "question": "What are the names, countries, and ages for every singer in descending order of age?",
+      "ground_truth_sql": "SELECT name ,  country ,  age FROM singer ORDER BY age DESC",
+      "full_columns": 21,
+      "reduced_columns": 7,
+      "schema_reduction_pct": 66.67,
+      "token_reduction_pct": 26.42,
+      "linking_time": 0.8193,
+      "baseline": {
+        "sql": "SELECT count(*) FROM stadium;",
+        "input_tokens": 371,
+        "llm_latency": 0.0001,
+        "exec_latency": 0.0011,
+        "total_latency": 0.0012,
+        "exec_success": true,
+        "result_correct": false,
+        "error": null
+      },
+      "proposed": {
+        "sql": "SELECT count(*) FROM singer;",
+        "input_tokens": 273,
+        "llm_latency": 0.0,
+        "exec_latency": 0.0012,
+        "total_latency": 0.8205,
+        "exec_success": true,
+        "result_correct": false,
+        "error": null,
+        "reduced_schema": {
+          "singer": {
+            "Age": "INT",
+            "Singer_ID": "INT",
+            "Song_Name": "TEXT",
+            "Name": "TEXT",
+            "Country": "TEXT"
+          },
+          "singer_in_concert": {
+            "Singer_ID": "TEXT",
+            "concert_ID": "INT"
+          }
+        }
+      },
+      "schema_metrics": {
+        "selected_columns_count": 7,
+        "direct_columns_count": 3,
+        "structural_columns_count": 0,
+        "all_required_columns_count": 3,
+        "direct_col_precision": 0.4286,
+        "direct_col_recall": 1.0,
+        "executable_col_precision": 0.4286,
+        "executable_col_recall": 1.0,
+        "table_precision": 0.5,
+        "table_recall": 1.0,
+        "missing_direct_cols": [],
+        "missing_structural_cols": [],
+        "missing_tables": []
+      }
+    },
+    {
+      "id": 5,
+      "db_id": "concert_singer",
+      "question": "What is the average, minimum, and maximum age of all singers from France?",
+      "ground_truth_sql": "SELECT avg(age) ,  min(age) ,  max(age) FROM singer WHERE country  =  'France'",
+      "full_columns": 21,
+      "reduced_columns": 7,
+      "schema_reduction_pct": 66.67,
+      "token_reduction_pct": 26.63,
+      "linking_time": 0.6341,
+      "baseline": {
+        "sql": "SELECT count(*) FROM stadium;",
+        "input_tokens": 368,
+        "llm_latency": 0.0001,
+        "exec_latency": 0.0013,
+        "total_latency": 0.0014,
+        "exec_success": true,
+        "result_correct": false,
+        "error": null
+      },
+      "proposed": {
+        "sql": "SELECT * FROM singer LIMIT 10;",
+        "input_tokens": 270,
+        "llm_latency": 0.0001,
+        "exec_latency": 0.0036,
+        "total_latency": 0.6378,
+        "exec_success": true,
+        "result_correct": false,
+        "error": null,
+        "reduced_schema": {
+          "singer": {
+            "Singer_ID": "INT",
+            "Age": "INT",
+            "Is_male": "BOOL",
+            "Name": "TEXT",
+            "Song_Name": "TEXT"
+          },
+          "singer_in_concert": {
+            "Singer_ID": "TEXT",
+            "concert_ID": "INT"
+          }
+        }
+      },
+      "schema_metrics": {
+        "selected_columns_count": 7,
+        "direct_columns_count": 2,
+        "structural_columns_count": 0,
+        "all_required_columns_count": 2,
+        "direct_col_precision": 0.1429,
+        "direct_col_recall": 0.5,
+        "executable_col_precision": 0.1429,
+        "executable_col_recall": 0.5,
+        "table_precision": 0.5,
+        "table_recall": 1.0,
+        "missing_direct_cols": [
+          "singer.Country"
+        ],
+        "missing_structural_cols": [],
+        "missing_tables": []
+      }
+    }
+  ]
+}

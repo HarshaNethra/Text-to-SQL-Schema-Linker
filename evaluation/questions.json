@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "question": "Find students whose attendance is below 75%.",
+    "category": "Single Table Filter",
+    "complexity": "Simple"
+  },
+  {
+    "id": 2,
+    "question": "Show CSE students who scored above 80.",
+    "category": "Multi-Condition Filter",
+    "complexity": "Medium"
+  },
+  {
+    "id": 3,
+    "question": "List students enrolled in Database Management Systems.",
+    "category": "3-Table Join",
+    "complexity": "Complex"
+  },
+  {
+    "id": 4,
+    "question": "Find the average marks of CSE students.",
+    "category": "Aggregation",
+    "complexity": "Simple"
+  },
+  {
+    "id": 5,
+    "question": "Show the names and grades of students enrolled in each course.",
+    "category": "3-Table Join",
+    "complexity": "Complex"
+  },
+  {
+    "id": 6,
+    "question": "Find faculty members whose salary is above 80000.",
+    "category": "Single Table Filter",
+    "complexity": "Simple"
+  },
+  {
+    "id": 7,
+    "question": "Count students in each department.",
+    "category": "Group By & Aggregation",
+    "complexity": "Medium"
+  },
+  {
+    "id": 8,
+    "question": "Show courses offered by the CSE department.",
+    "category": "Single Table Filter",
+    "complexity": "Simple"
+  },
+  {
+    "id": 9,
+    "question": "Find the student with the highest marks.",
+    "category": "Order By & Limit",
+    "complexity": "Medium"
+  },
+  {
+    "id": 10,
+    "question": "Show students and their grades using the enrollment table.",
+    "category": "Single Table Select",
+    "complexity": "Simple"
+  },
+  {
+    "id": 11,
+    "question": "Find all faculty in the ECE department.",
+    "category": "Single Table Filter",
+    "complexity": "Simple"
+  },
+  {
+    "id": 12,
+    "question": "List courses that offer 4 credits.",
+    "category": "Numeric Filter",
+    "complexity": "Simple"
+  },
+  {
+    "id": 13,
+    "question": "Find the minimum attendance among all students.",
+    "category": "Aggregation",
+    "complexity": "Simple"
+  },
+  {
+    "id": 14,
+    "question": "Show all students enrolled in course CS101.",
+    "category": "2-Table Join",
+    "complexity": "Medium"
+  },
+  {
+    "id": 15,
+    "question": "Find the total salary expenditure for the MECH faculty.",
+    "category": "Aggregation & Filter",
+    "complexity": "Medium"
+  }
+]
