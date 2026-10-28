@@ -54,7 +54,7 @@ class LLMClient:
             raise ValueError(
                 "GEMINI_API_KEY is required. Please set GEMINI_API_KEY in your environment or .env file."
             )
-        self.model_name = model_name or os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+        self.model_name = model_name or os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
         self.provider = "gemini"
 
     def generate_sql(self, prompt: str) -> Dict[str, Any]:

@@ -28,7 +28,7 @@ BASELINE PIPELINE:
     [Full Database Schema] (100% of tables & columns)
              │
              ▼
-     LLM (Gemini 2.5 Flash)
+     LLM (Gemini 3.5 Flash Lite)
              │
              ▼
        Generated SQL
@@ -52,7 +52,7 @@ PROPOSED PIPELINE:
     [Pruned Reduced Schema] (typically 50% - 80% smaller)
              │
              ▼
-     LLM (Gemini 2.5 Flash)
+     LLM (Gemini 3.5 Flash Lite)
              │
              ▼
        Generated SQL
@@ -134,7 +134,7 @@ copy .env.example .env
 Open `.env` in any text editor and set your key:
 ```env
 GEMINI_API_KEY=your_actual_gemini_api_key_here
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.5-flash-lite
 ```
 
 ---
@@ -197,7 +197,7 @@ Text-to-SQL-Schema-Linker/
 ├── college.db                     # SQLite sample database (Student, Course, Enrollment, Faculty)
 ├── database.py                    # Database layer: schema introspection, execution sandbox, presets
 ├── schema_linker.py               # Core 4-factor scoring, graph join-path completion, schema pruning
-├── llm.py                         # Google Gemini API integration (gemini-2.5-flash) & SQL cleanup
+├── llm.py                         # Google Gemini API integration (gemini-3.5-flash-lite) & SQL cleanup
 ├── prompts.py                     # Baseline (full schema) & Proposed (reduced schema) prompt builders
 ├── server.py                      # Multi-threaded HTTP server & REST APIs for web frontend
 ├── main.py                        # Interactive command-line interface (CLI)
@@ -246,7 +246,7 @@ Text-to-SQL-Schema-Linker/
 | Variable | Default | Description |
 | :--- | :--- | :--- |
 | `GEMINI_API_KEY` | *(Required)* | Google Gemini API key from AI Studio |
-| `GEMINI_MODEL` | `gemini-2.5-flash` | Gemini model name |
+| `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Gemini model name |
 | `PORT` | `5000` | Port for the web application server |
 | `LEXICAL_WEIGHT` | `0.40` | Weight for token overlap & stemming |
 | `SEMANTIC_WEIGHT` | `0.35` | Weight for SentenceTransformer vector similarity |
