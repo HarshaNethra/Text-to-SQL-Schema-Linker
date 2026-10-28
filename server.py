@@ -59,9 +59,11 @@ BENCHMARK_CANCEL_FLAG = False
 BENCHMARK_LOCK = threading.Lock()
 
 
+from benchmark_spider_top5 import run_top5_benchmark, TARGET_DBS
+
+
 def run_benchmark_background(queries_per_db: int = 1, target_dbs: Optional[List[str]] = None):
     global BENCHMARK_STATE, BENCHMARK_CANCEL_FLAG
-    from benchmark_spider_top5 import run_top5_benchmark, TARGET_DBS
 
     dbs = target_dbs if target_dbs else TARGET_DBS
     total = len(dbs) * queries_per_db
@@ -721,6 +723,10 @@ class AppRequestHandler(BaseHTTPRequestHandler):
             })
 
         elif path == "/api/clear":
+            if ACTIVE_DB_ID != "college":
+                return self._send_json({
+                    "error": f"Cannot drop tables from Spider benchmark database '{ACTIVE_DB_ID}'. Spider datasets are read-only benchmarks.",
+                }, status=400)
             clear_database(ACTIVE_DB_PATH)
             return self._send_json({
                 "message": "All tables dropped. Database is now empty.",
@@ -736,7 +742,11 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 if db_id == "college":
                     ACTIVE_DB_ID = "college"
                     ACTIVE_DB_PATH = DEFAULT_DB_PATH
-                    load_college_preset(ACTIVE_DB_PATH, force_recreate=False)
+                    # If college.db is missing or has 0 tables, force create/populate preset
+                    if not list_tables(ACTIVE_DB_PATH):
+                        load_college_preset(ACTIVE_DB_PATH, force_recreate=True)
+                    else:
+                        load_college_preset(ACTIVE_DB_PATH, force_recreate=False)
                 else:
                     adapter = SpiderAdapter()
                     ACTIVE_DB_PATH = adapter.get_db_path(db_id)

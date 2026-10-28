@@ -3,7 +3,7 @@ import re
 import sqlite3
 from typing import Any, Dict, List, Optional, Tuple
 
-DEFAULT_DB_PATH = "college.db"
+DEFAULT_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "college.db")
 
 # Sample records designed for realistic queries
 STUDENTS_DATA = [

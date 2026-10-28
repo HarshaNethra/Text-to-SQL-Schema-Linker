@@ -332,6 +332,29 @@ class TestSchemaLinkerAdvanced(unittest.TestCase):
         res = self.linker.link_schema(q, mock_schema, mock_rels)
         self.assertNotIn("rental", res["selected_tables"], "Generic verb 'Return' must not trigger 'rental' table selection")
 
+    def test_m_single_table_self_sufficiency_aircraft(self):
+        """
+        Test M: Single table self-sufficiency regression on Spider aircraft DB.
+        Verifies that a query like 'What are the name of pilots aged 25 or older?'
+        only selects the 'pilot' table without falsely pulling in 'airport', 'match', or 'aircraft'
+        via generic attribute matches ('name') or foreign key pointer columns ('Winning_Pilot').
+        """
+        from spider_adapter import SpiderAdapter
+        from database import get_schema, get_relationships
+        adapter = SpiderAdapter()
+        db_path = adapter.get_db_path("aircraft")
+        schema = get_schema(db_path)
+        rels = get_relationships(db_path)
+
+        q = "What are the name of pilots aged 25 or older?"
+        res = self.linker.link_schema(q, schema, rels)
+
+        self.assertEqual(res["selected_tables"], ["pilot"], "Only 'pilot' table should be selected for self-sufficient query")
+        self.assertIn("Name", res["reduced_schema"].get("pilot", {}), "pilot.Name must be included")
+        self.assertIn("Age", res["reduced_schema"].get("pilot", {}), "pilot.Age must be included")
+        self.assertNotIn("airport", res["selected_tables"], "Generic token 'name' must not pull in 'airport'")
+        self.assertNotIn("match", res["selected_tables"], "FK pointer column 'Winning_Pilot' must not pull in 'match'")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -93,10 +93,12 @@ def compute_lexical_similarity(question: str, table_name: str, col_name: str) ->
         score += 0.4 * (len(overlap) / len(combined_tokens))
 
     QUERY_ACTION_VERBS = {"return", "show", "list", "display", "find", "give", "tell", "select", "get"}
+    q_stems = {get_stem(qt) for qt in q_tokens}
 
     # Substring / partial match checks (excluding generic query verbs)
     for ct in col_tokens:
-        if ct in q_tokens and ct not in QUERY_ACTION_VERBS:
+        ct_stem = get_stem(ct)
+        if (ct in q_tokens or ct_stem in q_stems) and ct not in QUERY_ACTION_VERBS:
             score = max(score, 0.85)
         elif len(ct) >= 4 and any(ct in qt or (len(qt) >= 4 and qt in ct) for qt in q_tokens if qt not in QUERY_ACTION_VERBS):
             score = max(score, 0.65)
@@ -618,8 +620,25 @@ class SchemaLinker:
         q_tokens = set(re.findall(r'\b[a-zA-Z0-9]+\b', question.lower()))
         q_stems = {get_stem(qt) for qt in q_tokens}
         top_col_score = ranked_list[0]["score"] if ranked_list else 1.0
-
         QUERY_ACTION_VERBS = {"return", "show", "list", "display", "find", "give", "tell", "select", "get"}
+        GENERIC_ATTRIBUTE_WORDS = {
+            "name", "names", "id", "ids", "code", "codes", "number", "numbers", 
+            "no", "date", "dates", "time", "times", "year", "years", "type", "types", 
+            "status", "value", "values", "total", "count", "amount", "record", "records",
+            "description", "desc", "comment", "comments", "text", "info"
+        }
+
+        # Identify foreign key source/pointer columns
+        fk_from_columns: Set[Tuple[str, str]] = set()
+        fk_join_columns: Set[Tuple[str, str]] = set()
+        for r in relationships:
+            f_t, f_c = r.get("from_table"), r.get("from_column")
+            t_t, t_c = r.get("to_table"), r.get("to_column")
+            if f_t and f_c:
+                fk_from_columns.add((f_t, f_c))
+                fk_join_columns.add((f_t, f_c))
+            if t_t and t_c:
+                fk_join_columns.add((t_t, t_c))
 
         # Identify unambiguous anchor candidates:
         # 1. Tables whose name or name stem matches an explicit token in the question
@@ -631,27 +650,38 @@ class SchemaLinker:
                 if (tt in q_tokens or f"{tt}s" in q_tokens or f"{tt}es" in q_tokens or tt_stem in q_stems) and tt not in QUERY_ACTION_VERBS:
                     unambiguous_anchors.add(tbl)
 
-        # 2. Unique columns with strong lexical evidence (excluding generic query verbs)
+        # 2. Tables containing unique columns with domain-specific lexical evidence
         for item in ranked_list:
             c_lower = item["column"].lower()
+            t = item["table"]
+            # Foreign key pointers referencing other tables do not make their parent an entity anchor
+            if (t, item["column"]) in fk_from_columns:
+                continue
+
             if len(col_to_tables.get(c_lower, [])) == 1:
                 c_subtokens = set(split_identifier(c_lower)) - QUERY_ACTION_VERBS
-                has_strong_lex = (
-                    (item["lexical"] >= 0.80 and c_lower not in QUERY_ACTION_VERBS)
-                    or bool(c_subtokens.intersection(q_tokens - QUERY_ACTION_VERBS))
-                    or any(get_stem(st) in q_stems for st in c_subtokens)
-                )
-                if has_strong_lex and item["score"] >= min_score:
-                    unambiguous_anchors.add(item["table"])
+                matched_c = {st for st in c_subtokens if st in q_tokens or get_stem(st) in q_stems}
+                domain_matched = matched_c - GENERIC_ATTRIBUTE_WORDS
+                has_domain_lex = bool(domain_matched)
+
+                # If the only matching sub-token is generic (e.g. 'name' or 'id') and the table wasn't directly mentioned, skip
+                if matched_c and not domain_matched and t not in unambiguous_anchors:
+                    continue
+
+                if has_domain_lex and item["score"] >= min_score:
+                    unambiguous_anchors.add(t)
 
         # Disambiguate duplicate columns using graph proximity to unambiguous anchors
         ranked_list = self._disambiguate_duplicate_columns(ranked_list, graph, unambiguous_anchors, schema)
 
         # Step 3.2: Select essential content columns and anchor tables
-        # Suppress duplicate column alternatives once the winning table has satisfied the concept
         essential_columns: List[Dict[str, Any]] = []
         anchor_tables: Set[str] = set()
         resolved_duplicate_cols: Set[str] = set()
+
+        # Seed anchor tables with verified unambiguous entity anchors
+        for ua in unambiguous_anchors:
+            anchor_tables.add(ua)
 
         for item in ranked_list:
             t, c, sc = item["table"], item["column"], item["score"]
@@ -662,23 +692,26 @@ class SchemaLinker:
                 continue
 
             c_subtokens = set(split_identifier(c_lower)) - QUERY_ACTION_VERBS
-            has_strong_lex = (
-                (item["lexical"] >= 0.80 and c_lower not in QUERY_ACTION_VERBS)
-                or bool(c_subtokens.intersection(q_tokens - QUERY_ACTION_VERBS))
-                or any(get_stem(st) in q_stems for st in c_subtokens)
-            )
+            matched_c = {st for st in c_subtokens if st in q_tokens or get_stem(st) in q_stems}
+            domain_matched = matched_c - GENERIC_ATTRIBUTE_WORDS
+            has_domain_lex = bool(domain_matched)
+            has_generic_lex = bool(matched_c)
             is_near_top = sc >= max(min_score, top_col_score - self.anchor_margin)
 
-            # A column establishes an anchor if it has lexical grounding or its table is already an unambiguous anchor
-            if (has_strong_lex and sc >= min_score) or (is_near_top and (has_strong_lex or t in unambiguous_anchors)):
-                essential_columns.append(item)
-                anchor_tables.add(t)
-                if is_dup:
-                    resolved_duplicate_cols.add(c_lower)
-
-        # Ensure all unambiguous entity tables from query tokens are in anchor_tables
-        for ua in unambiguous_anchors:
-            anchor_tables.add(ua)
+            # If table is already an anchor, admit columns matching generic or domain lexical cues
+            if t in anchor_tables:
+                if has_generic_lex or (is_near_top and sc >= min_score):
+                    essential_columns.append(item)
+                    if is_dup:
+                        resolved_duplicate_cols.add(c_lower)
+            elif has_domain_lex and sc >= min_score:
+                # Table is not yet an anchor: only promote it if column has strong domain-specific lexical evidence
+                # and is NOT merely a foreign key reference column
+                if (t, c) not in fk_from_columns:
+                    essential_columns.append(item)
+                    anchor_tables.add(t)
+                    if is_dup:
+                        resolved_duplicate_cols.add(c_lower)
 
         if not anchor_tables and ranked_list:
             top_item = ranked_list[0]
@@ -761,17 +794,17 @@ class SchemaLinker:
                 if not (is_anchor and (is_small_table or has_high_sem) and total_content_cols < k_columns):
                     continue
 
+            # Check if this column is explicitly mentioned or a join key
+            c_tokens = set(split_identifier(c))
+            is_explicit_mention = bool(c_tokens.intersection(q_tokens) or any(get_stem(ct) in q_stems for ct in c_tokens))
+            is_join_key = (t, c) in fk_join_columns
+
             # Non-anchor tables are only admitted if column score is genuinely strong and relevant
             if t not in chosen_tables:
                 if len(chosen_tables) >= k_tables:
                     continue
                 if sc < max(0.50, top_col_score - self.anchor_margin) and not is_explicit_mention:
                     continue
-
-            # Check if this is a join key not explicitly mentioned in the query
-            c_tokens = set(split_identifier(c))
-            is_explicit_mention = bool(c_tokens.intersection(q_tokens))
-            is_join_key = (t, c) in fk_join_columns
 
             if is_join_key and not is_explicit_mention:
                 continue

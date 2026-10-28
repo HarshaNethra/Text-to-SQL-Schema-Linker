@@ -2,51 +2,51 @@
   "summary": {
     "prompt_tokens": {
       "baseline": 757.08,
-      "proposed": 361.92
+      "proposed": 319.4
     },
     "schema_cols_sent": {
       "baseline": 36.8,
-      "proposed": 7.84
+      "proposed": 5.8
     },
     "schema_reduction_pct": {
       "baseline": 0.0,
-      "proposed": 73.4
+      "proposed": 77.75
     },
     "linking_latency_ms": {
       "baseline": 0.0,
-      "proposed": 1077.26
+      "proposed": 21.94
     },
     "llm_latency_s": {
-      "baseline": 3.0,
-      "proposed": 2.9
+      "baseline": 3.02,
+      "proposed": 3.3
     },
     "total_latency_s": {
-      "baseline": 3.0,
-      "proposed": 3.98
+      "baseline": 3.02,
+      "proposed": 3.32
     },
     "macro_precision_pct": {
       "baseline": 9.19,
-      "proposed": 36.02
+      "proposed": 43.34
     },
     "macro_recall_pct": {
       "baseline": 100.0,
-      "proposed": 92.67
+      "proposed": 98.0
     },
     "macro_f1_pct": {
       "baseline": 16.37,
-      "proposed": 46.74
+      "proposed": 56.42
     },
     "exec_accuracy_pct": {
-      "baseline": 68.0,
-      "proposed": 72.0
+      "baseline": 72.0,
+      "proposed": 80.0
     },
     "exec_success_pct": {
       "baseline": 100.0,
       "proposed": 100.0
     },
     "tps": {
-      "baseline": 6.84,
-      "proposed": 7.1
+      "baseline": 7.22,
+      "proposed": 6.53
     }
   },
   "results": [
@@ -66,12 +66,9 @@
       ],
       "prop_selected_tables": [
         "employees",
-        "departments",
-        "countries",
-        "regions"
+        "departments"
       ],
       "prop_selected_cols": [
-        "countries.country_name",
         "departments.department_id",
         "departments.department_name",
         "departments.location_id",
@@ -79,46 +76,44 @@
         "employees.department_id",
         "employees.employee_id",
         "employees.first_name",
-        "employees.last_name",
-        "regions.region_name"
+        "employees.last_name"
       ],
       "baseline": {
-        "sql": "SELECT e.FIRST_NAME, d.DEPARTMENT_NAME FROM employees e LEFT JOIN departments d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID;",
+        "sql": "SELECT FIRST_NAME, DEPARTMENT_NAME FROM employees JOIN departments ON employees.DEPARTMENT_ID = departments.DEPARTMENT_ID;",
         "prompt_tokens": 823,
         "schema_cols_sent": 35,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 5.114,
-        "total_latency_s": 5.114,
+        "llm_latency_s": 2.643,
+        "total_latency_s": 2.643,
         "precision_pct": 11.43,
         "recall_pct": 100.0,
         "f1_pct": 20.52,
         "exec_success": true,
-        "result_correct": false,
-        "tps": 6.3
+        "result_correct": true,
+        "tps": 9.5
       },
       "proposed": {
         "sql": "SELECT e.FIRST_NAME, d.DEPARTMENT_NAME FROM employees e JOIN departments d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID;",
-        "prompt_tokens": 422,
-        "schema_cols_sent": 10,
-        "schema_reduction_pct": 71.43,
-        "linking_latency_ms": 26063.6,
-        "llm_latency_s": 2.918,
-        "total_latency_s": 28.9813,
-        "precision_pct": 40.0,
+        "prompt_tokens": 375,
+        "schema_cols_sent": 8,
+        "schema_reduction_pct": 77.14,
+        "linking_latency_ms": 85.1,
+        "llm_latency_s": 5.924,
+        "total_latency_s": 6.0095,
+        "precision_pct": 50.0,
         "recall_pct": 100.0,
-        "f1_pct": 57.14,
+        "f1_pct": 66.67,
         "exec_success": true,
         "result_correct": true,
-        "tps": 10.6,
+        "tps": 5.2,
         "validation": {
           "is_valid": true,
           "repaired": true,
           "fallback_used": false,
           "errors": [],
           "warnings": [
-            "Repaired missing essential column 'employees.EMPLOYEE_ID'.",
-            "Anchor tables disconnected in foreign key graph: countries, regions."
+            "Repaired missing essential column 'employees.EMPLOYEE_ID'."
           ],
           "join_paths": [
             {
@@ -128,10 +123,7 @@
               "to_column": "DEPARTMENT_ID"
             }
           ],
-          "disconnected_anchors": [
-            "countries",
-            "regions"
-          ]
+          "disconnected_anchors": []
         }
       }
     },
@@ -151,20 +143,16 @@
       ],
       "prop_selected_tables": [
         "employees",
-        "departments",
-        "countries",
-        "regions"
+        "departments"
       ],
       "prop_selected_cols": [
-        "countries.country_name",
         "departments.department_id",
         "departments.department_name",
         "departments.location_id",
         "departments.manager_id",
         "employees.department_id",
         "employees.first_name",
-        "employees.last_name",
-        "regions.region_name"
+        "employees.last_name"
       ],
       "baseline": {
         "sql": "SELECT e.FIRST_NAME, d.DEPARTMENT_NAME FROM employees e LEFT JOIN departments d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID;",
@@ -172,37 +160,35 @@
         "schema_cols_sent": 35,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.778,
-        "total_latency_s": 2.778,
+        "llm_latency_s": 4.071,
+        "total_latency_s": 4.071,
         "precision_pct": 11.43,
         "recall_pct": 100.0,
         "f1_pct": 20.52,
         "exec_success": true,
         "result_correct": false,
-        "tps": 11.5
+        "tps": 7.9
       },
       "proposed": {
-        "sql": "SELECT e.FIRST_NAME, d.DEPARTMENT_NAME FROM employees e LEFT JOIN departments d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID;",
-        "prompt_tokens": 408,
-        "schema_cols_sent": 9,
-        "schema_reduction_pct": 74.29,
-        "linking_latency_ms": 28.5,
-        "llm_latency_s": 3.337,
-        "total_latency_s": 3.3652,
-        "precision_pct": 44.44,
+        "sql": "SELECT employees.FIRST_NAME, departments.DEPARTMENT_NAME FROM employees JOIN departments ON employees.DEPARTMENT_ID = departments.DEPARTMENT_ID;",
+        "prompt_tokens": 361,
+        "schema_cols_sent": 7,
+        "schema_reduction_pct": 80.0,
+        "linking_latency_ms": 15.5,
+        "llm_latency_s": 4.43,
+        "total_latency_s": 4.4452,
+        "precision_pct": 57.14,
         "recall_pct": 100.0,
-        "f1_pct": 61.53,
+        "f1_pct": 72.72,
         "exec_success": true,
-        "result_correct": false,
-        "tps": 9.6,
+        "result_correct": true,
+        "tps": 6.5,
         "validation": {
           "is_valid": true,
           "repaired": false,
           "fallback_used": false,
           "errors": [],
-          "warnings": [
-            "Anchor tables disconnected in foreign key graph: countries, regions."
-          ],
+          "warnings": [],
           "join_paths": [
             {
               "from_table": "employees",
@@ -211,10 +197,7 @@
               "to_column": "DEPARTMENT_ID"
             }
           ],
-          "disconnected_anchors": [
-            "countries",
-            "regions"
-          ]
+          "disconnected_anchors": []
         }
       }
     },
@@ -231,23 +214,18 @@
         "employees.SALARY"
       ],
       "prop_selected_tables": [
-        "employees",
         "jobs",
-        "regions",
-        "departments",
-        "countries"
+        "employees"
       ],
       "prop_selected_cols": [
-        "countries.country_name",
-        "countries.region_id",
-        "departments.department_name",
         "employees.first_name",
+        "employees.job_id",
         "employees.last_name",
         "employees.salary",
+        "jobs.job_id",
+        "jobs.job_title",
         "jobs.max_salary",
-        "jobs.min_salary",
-        "regions.region_id",
-        "regions.region_name"
+        "jobs.min_salary"
       ],
       "baseline": {
         "sql": "SELECT FIRST_NAME, LAST_NAME, SALARY FROM employees WHERE SALARY < 6000;",
@@ -255,50 +233,44 @@
         "schema_cols_sent": 35,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.762,
-        "total_latency_s": 2.762,
+        "llm_latency_s": 3.784,
+        "total_latency_s": 3.784,
         "precision_pct": 8.57,
         "recall_pct": 100.0,
         "f1_pct": 15.79,
         "exec_success": true,
         "result_correct": true,
-        "tps": 8.3
+        "tps": 6.1
       },
       "proposed": {
         "sql": "SELECT FIRST_NAME, LAST_NAME, SALARY FROM employees WHERE SALARY < 6000;",
-        "prompt_tokens": 456,
-        "schema_cols_sent": 10,
-        "schema_reduction_pct": 71.43,
-        "linking_latency_ms": 22.8,
-        "llm_latency_s": 2.952,
-        "total_latency_s": 2.9744,
-        "precision_pct": 30.0,
+        "prompt_tokens": 384,
+        "schema_cols_sent": 8,
+        "schema_reduction_pct": 77.14,
+        "linking_latency_ms": 14.5,
+        "llm_latency_s": 3.946,
+        "total_latency_s": 3.9604,
+        "precision_pct": 37.5,
         "recall_pct": 100.0,
-        "f1_pct": 46.15,
+        "f1_pct": 54.55,
         "exec_success": true,
         "result_correct": true,
-        "tps": 7.8,
+        "tps": 5.8,
         "validation": {
           "is_valid": true,
           "repaired": false,
           "fallback_used": false,
           "errors": [],
-          "warnings": [
-            "Anchor tables disconnected in foreign key graph: employees, departments, jobs."
-          ],
+          "warnings": [],
           "join_paths": [
             {
-              "from_table": "countries",
-              "from_column": "REGION_ID",
-              "to_table": "regions",
-              "to_column": "REGION_ID"
+              "from_table": "jobs",
+              "from_column": "JOB_ID",
+              "to_table": "employees",
+              "to_column": "JOB_ID"
             }
           ],
-          "disconnected_anchors": [
-            "employees",
-            "departments",
-            "jobs"
-          ]
+          "disconnected_anchors": []
         }
       }
     },
@@ -315,24 +287,14 @@
         "employees.SALARY"
       ],
       "prop_selected_tables": [
-        "employees",
-        "departments",
-        "countries",
-        "regions"
+        "employees"
       ],
       "prop_selected_cols": [
-        "countries.country_name",
-        "departments.department_id",
-        "departments.department_name",
-        "departments.manager_id",
-        "employees.department_id",
-        "employees.employee_id",
         "employees.first_name",
         "employees.job_id",
         "employees.last_name",
         "employees.manager_id",
-        "employees.phone_number",
-        "regions.region_name"
+        "employees.salary"
       ],
       "baseline": {
         "sql": "SELECT FIRST_NAME || ' ' || LAST_NAME, SALARY FROM employees WHERE SALARY < 6000;",
@@ -340,51 +302,39 @@
         "schema_cols_sent": 35,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.772,
-        "total_latency_s": 2.772,
+        "llm_latency_s": 3.275,
+        "total_latency_s": 3.275,
         "precision_pct": 8.57,
         "recall_pct": 100.0,
         "f1_pct": 15.79,
         "exec_success": true,
         "result_correct": false,
-        "tps": 9.4
+        "tps": 7.9
       },
       "proposed": {
-        "sql": "SELECT FIRST_NAME, LAST_NAME FROM employees WHERE SALARY < 6000",
-        "prompt_tokens": 454,
-        "schema_cols_sent": 12,
-        "schema_reduction_pct": 65.71,
-        "linking_latency_ms": 29.9,
-        "llm_latency_s": 2.845,
-        "total_latency_s": 2.8746,
-        "precision_pct": 16.67,
-        "recall_pct": 66.67,
-        "f1_pct": 26.67,
+        "sql": "SELECT FIRST_NAME, LAST_NAME, SALARY FROM employees WHERE SALARY < 6000;",
+        "prompt_tokens": 315,
+        "schema_cols_sent": 5,
+        "schema_reduction_pct": 85.71,
+        "linking_latency_ms": 14.2,
+        "llm_latency_s": 4.537,
+        "total_latency_s": 4.5515,
+        "precision_pct": 60.0,
+        "recall_pct": 100.0,
+        "f1_pct": 75.0,
         "exec_success": true,
-        "result_correct": false,
-        "tps": 6.7,
+        "result_correct": true,
+        "tps": 5.1,
         "validation": {
           "is_valid": true,
           "repaired": true,
           "fallback_used": false,
           "errors": [],
           "warnings": [
-            "Repaired missing essential column 'employees.JOB_ID'.",
-            "Repaired missing essential column 'employees.EMPLOYEE_ID'.",
-            "Anchor tables disconnected in foreign key graph: countries, regions."
+            "Repaired missing essential column 'employees.JOB_ID'."
           ],
-          "join_paths": [
-            {
-              "from_table": "employees",
-              "from_column": "DEPARTMENT_ID",
-              "to_table": "departments",
-              "to_column": "DEPARTMENT_ID"
-            }
-          ],
-          "disconnected_anchors": [
-            "countries",
-            "regions"
-          ]
+          "join_paths": [],
+          "disconnected_anchors": []
         }
       }
     },
@@ -402,12 +352,9 @@
       ],
       "prop_selected_tables": [
         "employees",
-        "departments",
-        "countries",
-        "regions"
+        "departments"
       ],
       "prop_selected_cols": [
-        "countries.country_name",
         "departments.department_id",
         "departments.department_name",
         "departments.location_id",
@@ -415,8 +362,7 @@
         "employees.department_id",
         "employees.first_name",
         "employees.last_name",
-        "employees.phone_number",
-        "regions.region_name"
+        "employees.phone_number"
       ],
       "baseline": {
         "sql": "SELECT FIRST_NAME, DEPARTMENT_ID FROM employees WHERE LAST_NAME = 'McEwen';",
@@ -424,37 +370,35 @@
         "schema_cols_sent": 35,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.663,
-        "total_latency_s": 2.663,
+        "llm_latency_s": 3.93,
+        "total_latency_s": 3.93,
         "precision_pct": 8.57,
         "recall_pct": 100.0,
         "f1_pct": 15.79,
         "exec_success": true,
         "result_correct": true,
-        "tps": 7.5
+        "tps": 5.1
       },
       "proposed": {
         "sql": "SELECT FIRST_NAME, DEPARTMENT_ID FROM employees WHERE LAST_NAME = 'McEwen';",
-        "prompt_tokens": 428,
-        "schema_cols_sent": 10,
-        "schema_reduction_pct": 71.43,
-        "linking_latency_ms": 29.0,
-        "llm_latency_s": 2.827,
-        "total_latency_s": 2.8561,
-        "precision_pct": 30.0,
+        "prompt_tokens": 381,
+        "schema_cols_sent": 8,
+        "schema_reduction_pct": 77.14,
+        "linking_latency_ms": 15.2,
+        "llm_latency_s": 4.176,
+        "total_latency_s": 4.1915,
+        "precision_pct": 37.5,
         "recall_pct": 100.0,
-        "f1_pct": 46.15,
+        "f1_pct": 54.55,
         "exec_success": true,
         "result_correct": true,
-        "tps": 7.1,
+        "tps": 4.8,
         "validation": {
           "is_valid": true,
           "repaired": false,
           "fallback_used": false,
           "errors": [],
-          "warnings": [
-            "Anchor tables disconnected in foreign key graph: countries, regions."
-          ],
+          "warnings": [],
           "join_paths": [
             {
               "from_table": "employees",
@@ -463,10 +407,7 @@
               "to_column": "DEPARTMENT_ID"
             }
           ],
-          "disconnected_anchors": [
-            "countries",
-            "regions"
-          ]
+          "disconnected_anchors": []
         }
       }
     },
@@ -491,29 +432,29 @@
         "schema_cols_sent": 23,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.755,
-        "total_latency_s": 2.755,
+        "llm_latency_s": 7.738,
+        "total_latency_s": 7.738,
         "precision_pct": 8.7,
         "recall_pct": 100.0,
         "f1_pct": 16.01,
         "exec_success": true,
         "result_correct": true,
-        "tps": 1.8
+        "tps": 0.6
       },
       "proposed": {
         "sql": "SELECT count(*) FROM continents",
         "prompt_tokens": 254,
         "schema_cols_sent": 2,
         "schema_reduction_pct": 91.3,
-        "linking_latency_ms": 64.1,
-        "llm_latency_s": 2.707,
-        "total_latency_s": 2.7708,
+        "linking_latency_ms": 29.5,
+        "llm_latency_s": 9.13,
+        "total_latency_s": 9.1591,
         "precision_pct": 100.0,
         "recall_pct": 100.0,
         "f1_pct": 100.0,
         "exec_success": true,
         "result_correct": true,
-        "tps": 1.8,
+        "tps": 0.5,
         "validation": {
           "is_valid": true,
           "repaired": true,
@@ -543,34 +484,34 @@
         "continents.continent"
       ],
       "baseline": {
-        "sql": "SELECT count(*) FROM continents",
+        "sql": "SELECT COUNT(*) FROM continents",
         "prompt_tokens": 508,
         "schema_cols_sent": 23,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.861,
-        "total_latency_s": 2.861,
+        "llm_latency_s": 2.463,
+        "total_latency_s": 2.463,
         "precision_pct": 8.7,
         "recall_pct": 100.0,
         "f1_pct": 16.01,
         "exec_success": true,
         "result_correct": true,
-        "tps": 1.7
+        "tps": 2.0
       },
       "proposed": {
         "sql": "SELECT count(*) FROM continents",
         "prompt_tokens": 255,
         "schema_cols_sent": 2,
         "schema_reduction_pct": 91.3,
-        "linking_latency_ms": 25.4,
-        "llm_latency_s": 2.845,
-        "total_latency_s": 2.8701,
+        "linking_latency_ms": 14.1,
+        "llm_latency_s": 2.479,
+        "total_latency_s": 2.4933,
         "precision_pct": 100.0,
         "recall_pct": 100.0,
         "f1_pct": 100.0,
         "exec_success": true,
         "result_correct": true,
-        "tps": 1.8,
+        "tps": 2.0,
         "validation": {
           "is_valid": true,
           "repaired": true,
@@ -598,16 +539,16 @@
         "countries.Continent"
       ],
       "prop_selected_tables": [
-        "car_makers",
-        "car_names",
         "model_list",
         "countries",
+        "car_names",
+        "car_makers",
         "continents"
       ],
       "prop_selected_cols": [
         "car_makers.country",
-        "car_makers.fullname",
         "car_makers.id",
+        "car_names.make",
         "car_names.makeid",
         "car_names.model",
         "continents.contid",
@@ -625,37 +566,35 @@
         "schema_cols_sent": 23,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.666,
-        "total_latency_s": 2.666,
+        "llm_latency_s": 2.898,
+        "total_latency_s": 2.898,
         "precision_pct": 13.04,
         "recall_pct": 100.0,
         "f1_pct": 23.07,
         "exec_success": true,
         "result_correct": true,
-        "tps": 19.9
+        "tps": 18.3
       },
       "proposed": {
         "sql": "SELECT T1.ContId, T1.Continent, COUNT(T2.CountryId) FROM continents AS T1 JOIN countries AS T2 ON T1.ContId = T2.Continent GROUP BY T1.ContId, T1.Continent",
-        "prompt_tokens": 431,
+        "prompt_tokens": 430,
         "schema_cols_sent": 13,
         "schema_reduction_pct": 43.48,
-        "linking_latency_ms": 27.6,
-        "llm_latency_s": 2.931,
-        "total_latency_s": 2.9585,
+        "linking_latency_ms": 14.7,
+        "llm_latency_s": 2.531,
+        "total_latency_s": 2.5455,
         "precision_pct": 23.08,
         "recall_pct": 100.0,
         "f1_pct": 37.5,
         "exec_success": true,
         "result_correct": true,
-        "tps": 18.1,
+        "tps": 20.9,
         "validation": {
           "is_valid": true,
-          "repaired": true,
+          "repaired": false,
           "fallback_used": false,
           "errors": [],
-          "warnings": [
-            "Repaired missing essential column 'car_makers.FullName'."
-          ],
+          "warnings": [],
           "join_paths": [
             {
               "from_table": "car_names",
@@ -700,16 +639,16 @@
         "countries.Continent"
       ],
       "prop_selected_tables": [
-        "car_makers",
-        "car_names",
         "model_list",
         "countries",
+        "car_names",
+        "car_makers",
         "continents"
       ],
       "prop_selected_cols": [
         "car_makers.country",
-        "car_makers.fullname",
         "car_makers.id",
+        "car_names.make",
         "car_names.makeid",
         "car_names.model",
         "continents.contid",
@@ -727,37 +666,35 @@
         "schema_cols_sent": 23,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.566,
-        "total_latency_s": 2.566,
+        "llm_latency_s": 2.589,
+        "total_latency_s": 2.589,
         "precision_pct": 13.04,
         "recall_pct": 100.0,
         "f1_pct": 23.07,
         "exec_success": true,
         "result_correct": true,
-        "tps": 20.7
+        "tps": 20.5
       },
       "proposed": {
         "sql": "SELECT T1.ContId, T1.Continent, COUNT(T2.CountryId) FROM continents AS T1 JOIN countries AS T2 ON T1.ContId = T2.Continent GROUP BY T1.ContId, T1.Continent",
-        "prompt_tokens": 427,
+        "prompt_tokens": 426,
         "schema_cols_sent": 13,
         "schema_reduction_pct": 43.48,
-        "linking_latency_ms": 18.4,
-        "llm_latency_s": 2.751,
-        "total_latency_s": 2.7693,
+        "linking_latency_ms": 14.2,
+        "llm_latency_s": 3.341,
+        "total_latency_s": 3.3554,
         "precision_pct": 23.08,
         "recall_pct": 100.0,
         "f1_pct": 37.5,
         "exec_success": true,
         "result_correct": true,
-        "tps": 19.3,
+        "tps": 15.9,
         "validation": {
           "is_valid": true,
-          "repaired": true,
+          "repaired": false,
           "fallback_used": false,
           "errors": [],
-          "warnings": [
-            "Repaired missing essential column 'car_makers.FullName'."
-          ],
+          "warnings": [],
           "join_paths": [
             {
               "from_table": "car_names",
@@ -810,23 +747,23 @@
         "schema_cols_sent": 23,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.761,
-        "total_latency_s": 2.761,
+        "llm_latency_s": 3.09,
+        "total_latency_s": 3.09,
         "precision_pct": 13.04,
         "recall_pct": 100.0,
         "f1_pct": 23.07,
         "exec_success": true,
         "result_correct": true,
-        "tps": 1.8
+        "tps": 1.6
       },
       "proposed": {
         "sql": "SELECT COUNT(*) FROM countries;",
         "prompt_tokens": 262,
         "schema_cols_sent": 3,
         "schema_reduction_pct": 86.96,
-        "linking_latency_ms": 31.9,
-        "llm_latency_s": 2.972,
-        "total_latency_s": 3.0043,
+        "linking_latency_ms": 19.5,
+        "llm_latency_s": 3.011,
+        "total_latency_s": 3.0303,
         "precision_pct": 100.0,
         "recall_pct": 100.0,
         "f1_pct": 100.0,
@@ -860,19 +797,14 @@
       ],
       "prop_selected_tables": [
         "flights",
-        "airports",
         "airlines"
       ],
       "prop_selected_cols": [
+        "airlines.abbreviation",
         "airlines.airline",
         "airlines.country",
-        "airports.airportcode",
-        "airports.airportname",
-        "airports.city",
-        "airports.country",
-        "airports.countryabbrev",
+        "airlines.uid",
         "flights.airline",
-        "flights.destairport",
         "flights.flightno"
       ],
       "baseline": {
@@ -881,44 +813,41 @@
         "schema_cols_sent": 13,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.832,
-        "total_latency_s": 2.832,
+        "llm_latency_s": 2.935,
+        "total_latency_s": 2.935,
         "precision_pct": 15.38,
         "recall_pct": 100.0,
         "f1_pct": 26.66,
         "exec_success": true,
         "result_correct": true,
-        "tps": 4.2
+        "tps": 4.1
       },
       "proposed": {
-        "sql": "SELECT Country FROM airlines WHERE Airline = 'JetBlue Airways';",
-        "prompt_tokens": 359,
-        "schema_cols_sent": 10,
-        "schema_reduction_pct": 23.08,
-        "linking_latency_ms": 58.8,
-        "llm_latency_s": 2.91,
-        "total_latency_s": 2.9691,
-        "precision_pct": 20.0,
+        "sql": "SELECT Country FROM airlines WHERE Airline = 'JetBlue Airways'",
+        "prompt_tokens": 293,
+        "schema_cols_sent": 6,
+        "schema_reduction_pct": 53.85,
+        "linking_latency_ms": 28.9,
+        "llm_latency_s": 2.412,
+        "total_latency_s": 2.4409,
+        "precision_pct": 33.33,
         "recall_pct": 100.0,
-        "f1_pct": 33.33,
+        "f1_pct": 50.0,
         "exec_success": true,
         "result_correct": true,
-        "tps": 4.1,
+        "tps": 5.0,
         "validation": {
           "is_valid": true,
           "repaired": false,
           "fallback_used": false,
           "errors": [],
-          "warnings": [],
-          "join_paths": [
-            {
-              "from_table": "flights",
-              "from_column": "DestAirport",
-              "to_table": "airports",
-              "to_column": "AirportCode"
-            }
+          "warnings": [
+            "Anchor tables disconnected in foreign key graph: airlines."
           ],
-          "disconnected_anchors": []
+          "join_paths": [],
+          "disconnected_anchors": [
+            "airlines"
+          ]
         }
       }
     },
@@ -934,13 +863,13 @@
         "airlines.Country"
       ],
       "prop_selected_tables": [
-        "airports"
+        "airlines"
       ],
       "prop_selected_cols": [
-        "airports.airportname",
-        "airports.city",
-        "airports.country",
-        "airports.countryabbrev"
+        "airlines.abbreviation",
+        "airlines.airline",
+        "airlines.country",
+        "airlines.uid"
       ],
       "baseline": {
         "sql": "SELECT Country FROM airlines WHERE Airline = 'Jetblue Airways';",
@@ -948,29 +877,29 @@
         "schema_cols_sent": 13,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.768,
-        "total_latency_s": 2.768,
+        "llm_latency_s": 2.401,
+        "total_latency_s": 2.401,
         "precision_pct": 15.38,
         "recall_pct": 100.0,
         "f1_pct": 26.66,
         "exec_success": true,
         "result_correct": false,
-        "tps": 4.3
+        "tps": 5.0
       },
       "proposed": {
-        "sql": "SELECT Country FROM airports WHERE AirportName LIKE '%Jetblue Airways%'",
-        "prompt_tokens": 273,
+        "sql": "SELECT Country FROM airlines WHERE Airline = 'Jetblue Airways';",
+        "prompt_tokens": 271,
         "schema_cols_sent": 4,
         "schema_reduction_pct": 69.23,
-        "linking_latency_ms": 26.9,
-        "llm_latency_s": 3.252,
-        "total_latency_s": 3.2792,
-        "precision_pct": 0.0,
-        "recall_pct": 0.0,
-        "f1_pct": 0.0,
+        "linking_latency_ms": 13.4,
+        "llm_latency_s": 3.542,
+        "total_latency_s": 3.5557,
+        "precision_pct": 50.0,
+        "recall_pct": 100.0,
+        "f1_pct": 66.67,
         "exec_success": true,
         "result_correct": false,
-        "tps": 4.0,
+        "tps": 3.4,
         "validation": {
           "is_valid": true,
           "repaired": false,
@@ -1008,29 +937,29 @@
         "schema_cols_sent": 13,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 3.276,
-        "total_latency_s": 3.276,
+        "llm_latency_s": 2.473,
+        "total_latency_s": 2.473,
         "precision_pct": 15.38,
         "recall_pct": 100.0,
         "f1_pct": 26.66,
         "exec_success": true,
         "result_correct": true,
-        "tps": 4.0
+        "tps": 5.3
       },
       "proposed": {
         "sql": "SELECT Abbreviation FROM airlines WHERE Airline = 'JetBlue Airways'",
         "prompt_tokens": 273,
         "schema_cols_sent": 4,
         "schema_reduction_pct": 69.23,
-        "linking_latency_ms": 27.9,
-        "llm_latency_s": 3.046,
-        "total_latency_s": 3.0734,
+        "linking_latency_ms": 14.8,
+        "llm_latency_s": 2.412,
+        "total_latency_s": 2.4267,
         "precision_pct": 50.0,
         "recall_pct": 100.0,
         "f1_pct": 66.67,
         "exec_success": true,
         "result_correct": true,
-        "tps": 4.3,
+        "tps": 5.4,
         "validation": {
           "is_valid": true,
           "repaired": false,
@@ -1068,29 +997,29 @@
         "schema_cols_sent": 13,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 3.177,
-        "total_latency_s": 3.177,
+        "llm_latency_s": 2.487,
+        "total_latency_s": 2.487,
         "precision_pct": 15.38,
         "recall_pct": 100.0,
         "f1_pct": 26.66,
         "exec_success": true,
         "result_correct": false,
-        "tps": 4.1
+        "tps": 5.2
       },
       "proposed": {
         "sql": "SELECT Abbreviation FROM airlines WHERE Airline = 'Jetblue Airways';",
         "prompt_tokens": 270,
         "schema_cols_sent": 4,
         "schema_reduction_pct": 69.23,
-        "linking_latency_ms": 21.9,
-        "llm_latency_s": 2.548,
-        "total_latency_s": 2.5696,
+        "linking_latency_ms": 13.3,
+        "llm_latency_s": 2.466,
+        "total_latency_s": 2.4794,
         "precision_pct": 50.0,
         "recall_pct": 100.0,
         "f1_pct": 66.67,
         "exec_success": true,
         "result_correct": false,
-        "tps": 5.1,
+        "tps": 5.3,
         "validation": {
           "is_valid": true,
           "repaired": false,
@@ -1115,13 +1044,16 @@
         "airlines.Country"
       ],
       "prop_selected_tables": [
-        "airlines"
+        "airlines",
+        "airports"
       ],
       "prop_selected_cols": [
         "airlines.abbreviation",
         "airlines.airline",
         "airlines.country",
-        "airlines.uid"
+        "airlines.uid",
+        "airports.airportname",
+        "airports.countryabbrev"
       ],
       "baseline": {
         "sql": "SELECT Airline, Abbreviation FROM airlines WHERE Country = 'USA';",
@@ -1129,29 +1061,29 @@
         "schema_cols_sent": 13,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.65,
-        "total_latency_s": 2.65,
+        "llm_latency_s": 3.033,
+        "total_latency_s": 3.033,
         "precision_pct": 23.08,
         "recall_pct": 100.0,
         "f1_pct": 37.5,
         "exec_success": true,
         "result_correct": true,
-        "tps": 4.9
+        "tps": 4.3
       },
       "proposed": {
         "sql": "SELECT Airline, Abbreviation FROM airlines WHERE Country = 'USA';",
-        "prompt_tokens": 273,
-        "schema_cols_sent": 4,
-        "schema_reduction_pct": 69.23,
-        "linking_latency_ms": 26.6,
-        "llm_latency_s": 2.743,
-        "total_latency_s": 2.7692,
-        "precision_pct": 75.0,
+        "prompt_tokens": 294,
+        "schema_cols_sent": 6,
+        "schema_reduction_pct": 53.85,
+        "linking_latency_ms": 14.4,
+        "llm_latency_s": 2.868,
+        "total_latency_s": 2.8828,
+        "precision_pct": 50.0,
         "recall_pct": 100.0,
-        "f1_pct": 85.71,
+        "f1_pct": 66.67,
         "exec_success": true,
         "result_correct": true,
-        "tps": 4.7,
+        "tps": 4.5,
         "validation": {
           "is_valid": true,
           "repaired": false,
@@ -1189,29 +1121,29 @@
         "schema_cols_sent": 24,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 3.071,
-        "total_latency_s": 3.071,
+        "llm_latency_s": 2.61,
+        "total_latency_s": 2.61,
         "precision_pct": 8.33,
         "recall_pct": 100.0,
         "f1_pct": 15.38,
         "exec_success": true,
         "result_correct": true,
-        "tps": 4.9
+        "tps": 5.7
       },
       "proposed": {
         "sql": "SELECT Name FROM country WHERE IndepYear > 1950;",
         "prompt_tokens": 293,
         "schema_cols_sent": 4,
         "schema_reduction_pct": 83.33,
-        "linking_latency_ms": 50.7,
-        "llm_latency_s": 2.818,
-        "total_latency_s": 2.8685,
+        "linking_latency_ms": 28.7,
+        "llm_latency_s": 2.366,
+        "total_latency_s": 2.3945,
         "precision_pct": 50.0,
         "recall_pct": 100.0,
         "f1_pct": 66.67,
         "exec_success": true,
         "result_correct": true,
-        "tps": 5.3,
+        "tps": 6.3,
         "validation": {
           "is_valid": true,
           "repaired": false,
@@ -1248,29 +1180,29 @@
         "schema_cols_sent": 24,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.66,
-        "total_latency_s": 2.66,
+        "llm_latency_s": 2.385,
+        "total_latency_s": 2.385,
         "precision_pct": 8.33,
         "recall_pct": 100.0,
         "f1_pct": 15.38,
         "exec_success": true,
         "result_correct": true,
-        "tps": 5.6
+        "tps": 6.3
       },
       "proposed": {
         "sql": "SELECT Name FROM country WHERE IndepYear > 1950;",
         "prompt_tokens": 282,
         "schema_cols_sent": 3,
         "schema_reduction_pct": 87.5,
-        "linking_latency_ms": 30.1,
-        "llm_latency_s": 2.94,
-        "total_latency_s": 2.9701,
+        "linking_latency_ms": 14.1,
+        "llm_latency_s": 2.613,
+        "total_latency_s": 2.6273,
         "precision_pct": 33.33,
         "recall_pct": 50.0,
         "f1_pct": 40.0,
         "exec_success": true,
         "result_correct": true,
-        "tps": 5.1,
+        "tps": 5.7,
         "validation": {
           "is_valid": true,
           "repaired": false,
@@ -1299,8 +1231,7 @@
         "country.governmentform",
         "country.headofstate",
         "country.localname",
-        "country.name",
-        "country.population"
+        "country.name"
       ],
       "baseline": {
         "sql": "SELECT COUNT(*) FROM country WHERE GovernmentForm LIKE '%Republic%';",
@@ -1308,29 +1239,29 @@
         "schema_cols_sent": 24,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 3.074,
-        "total_latency_s": 3.074,
+        "llm_latency_s": 2.542,
+        "total_latency_s": 2.542,
         "precision_pct": 4.17,
         "recall_pct": 100.0,
         "f1_pct": 8.01,
         "exec_success": true,
         "result_correct": false,
-        "tps": 3.9
+        "tps": 4.7
       },
       "proposed": {
         "sql": "SELECT COUNT(*) FROM country WHERE GovernmentForm LIKE '%Republic%';",
-        "prompt_tokens": 296,
-        "schema_cols_sent": 5,
-        "schema_reduction_pct": 79.17,
-        "linking_latency_ms": 29.1,
-        "llm_latency_s": 2.735,
-        "total_latency_s": 2.7644,
-        "precision_pct": 20.0,
+        "prompt_tokens": 289,
+        "schema_cols_sent": 4,
+        "schema_reduction_pct": 83.33,
+        "linking_latency_ms": 15.0,
+        "llm_latency_s": 2.46,
+        "total_latency_s": 2.4754,
+        "precision_pct": 25.0,
         "recall_pct": 100.0,
-        "f1_pct": 33.33,
+        "f1_pct": 40.0,
         "exec_success": true,
         "result_correct": false,
-        "tps": 4.4,
+        "tps": 4.9,
         "validation": {
           "is_valid": true,
           "repaired": false,
@@ -1367,29 +1298,29 @@
         "schema_cols_sent": 24,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.868,
-        "total_latency_s": 2.868,
+        "llm_latency_s": 2.484,
+        "total_latency_s": 2.484,
         "precision_pct": 4.17,
         "recall_pct": 100.0,
         "f1_pct": 8.01,
         "exec_success": true,
         "result_correct": false,
-        "tps": 4.2
+        "tps": 4.8
       },
       "proposed": {
         "sql": "SELECT COUNT(*) FROM country WHERE GovernmentForm LIKE '%Republic%';",
         "prompt_tokens": 281,
         "schema_cols_sent": 4,
         "schema_reduction_pct": 83.33,
-        "linking_latency_ms": 32.4,
-        "llm_latency_s": 2.734,
-        "total_latency_s": 2.7661,
+        "linking_latency_ms": 15.5,
+        "llm_latency_s": 2.531,
+        "total_latency_s": 2.5463,
         "precision_pct": 25.0,
         "recall_pct": 100.0,
         "f1_pct": 40.0,
         "exec_success": true,
         "result_correct": false,
-        "tps": 4.4,
+        "tps": 4.7,
         "validation": {
           "is_valid": true,
           "repaired": false,
@@ -1413,20 +1344,16 @@
         "country.SurfaceArea"
       ],
       "prop_selected_tables": [
-        "countrylanguage",
         "country"
       ],
       "prop_selected_cols": [
-        "country.code",
         "country.continent",
         "country.headofstate",
+        "country.localname",
+        "country.name",
         "country.population",
         "country.region",
-        "country.surfacearea",
-        "countrylanguage.countrycode",
-        "countrylanguage.isofficial",
-        "countrylanguage.language",
-        "countrylanguage.percentage"
+        "country.surfacearea"
       ],
       "baseline": {
         "sql": "SELECT SUM(SurfaceArea) FROM country WHERE Region = 'Caribbean';",
@@ -1434,43 +1361,36 @@
         "schema_cols_sent": 24,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.868,
-        "total_latency_s": 2.868,
+        "llm_latency_s": 2.413,
+        "total_latency_s": 2.413,
         "precision_pct": 8.33,
         "recall_pct": 100.0,
         "f1_pct": 15.38,
         "exec_success": true,
         "result_correct": true,
-        "tps": 4.9
+        "tps": 5.8
       },
       "proposed": {
-        "sql": "SELECT SUM(SurfaceArea) FROM country WHERE Region = 'Caribbean';",
-        "prompt_tokens": 367,
-        "schema_cols_sent": 10,
-        "schema_reduction_pct": 58.33,
-        "linking_latency_ms": 24.9,
-        "llm_latency_s": 2.639,
-        "total_latency_s": 2.6641,
-        "precision_pct": 20.0,
+        "sql": "SELECT SUM(SurfaceArea) FROM country WHERE Region = 'Caribbean'",
+        "prompt_tokens": 317,
+        "schema_cols_sent": 7,
+        "schema_reduction_pct": 70.83,
+        "linking_latency_ms": 14.6,
+        "llm_latency_s": 2.469,
+        "total_latency_s": 2.4834,
+        "precision_pct": 28.57,
         "recall_pct": 100.0,
-        "f1_pct": 33.33,
+        "f1_pct": 44.44,
         "exec_success": true,
         "result_correct": true,
-        "tps": 5.3,
+        "tps": 5.7,
         "validation": {
           "is_valid": true,
           "repaired": false,
           "fallback_used": false,
           "errors": [],
           "warnings": [],
-          "join_paths": [
-            {
-              "from_table": "countrylanguage",
-              "from_column": "CountryCode",
-              "to_table": "country",
-              "to_column": "Code"
-            }
-          ],
+          "join_paths": [],
           "disconnected_anchors": []
         }
       }
@@ -1486,8 +1406,6 @@
         "actor.last_name"
       ],
       "prop_selected_tables": [
-        "film",
-        "language",
         "actor",
         "film_actor"
       ],
@@ -1496,14 +1414,8 @@
         "actor.first_name",
         "actor.last_name",
         "actor.last_update",
-        "film.film_id",
-        "film.original_language_id",
         "film_actor.actor_id",
-        "film_actor.film_id",
-        "film_actor.last_update",
-        "language.language_id",
-        "language.last_update",
-        "language.name"
+        "film_actor.last_update"
       ],
       "baseline": {
         "sql": "SELECT COUNT(DISTINCT last_name) FROM actor;",
@@ -1511,29 +1423,29 @@
         "schema_cols_sent": 89,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.855,
-        "total_latency_s": 2.855,
+        "llm_latency_s": 2.82,
+        "total_latency_s": 2.82,
         "precision_pct": 1.12,
         "recall_pct": 100.0,
         "f1_pct": 2.22,
         "exec_success": true,
         "result_correct": true,
-        "tps": 4.2
+        "tps": 4.3
       },
       "proposed": {
         "sql": "SELECT COUNT(DISTINCT last_name) FROM actor;",
-        "prompt_tokens": 458,
-        "schema_cols_sent": 12,
-        "schema_reduction_pct": 86.52,
-        "linking_latency_ms": 112.2,
-        "llm_latency_s": 2.861,
-        "total_latency_s": 2.9732,
-        "precision_pct": 8.33,
+        "prompt_tokens": 337,
+        "schema_cols_sent": 6,
+        "schema_reduction_pct": 93.26,
+        "linking_latency_ms": 64.4,
+        "llm_latency_s": 2.982,
+        "total_latency_s": 3.0466,
+        "precision_pct": 16.67,
         "recall_pct": 100.0,
-        "f1_pct": 15.38,
+        "f1_pct": 28.58,
         "exec_success": true,
         "result_correct": true,
-        "tps": 4.2,
+        "tps": 4.0,
         "validation": {
           "is_valid": true,
           "repaired": false,
@@ -1542,21 +1454,9 @@
           "warnings": [],
           "join_paths": [
             {
-              "from_table": "language",
-              "from_column": "language_id",
-              "to_table": "film",
-              "to_column": "original_language_id"
-            },
-            {
-              "from_table": "film",
-              "from_column": "film_id",
-              "to_table": "film_actor",
-              "to_column": "film_id"
-            },
-            {
-              "from_table": "film_actor",
+              "from_table": "actor",
               "from_column": "actor_id",
-              "to_table": "actor",
+              "to_table": "film_actor",
               "to_column": "actor_id"
             }
           ],
@@ -1575,8 +1475,6 @@
         "actor.last_name"
       ],
       "prop_selected_tables": [
-        "film",
-        "language",
         "actor",
         "film_actor"
       ],
@@ -1585,14 +1483,8 @@
         "actor.first_name",
         "actor.last_name",
         "actor.last_update",
-        "film.film_id",
-        "film.original_language_id",
         "film_actor.actor_id",
-        "film_actor.film_id",
-        "film_actor.last_update",
-        "language.language_id",
-        "language.last_update",
-        "language.name"
+        "film_actor.last_update"
       ],
       "baseline": {
         "sql": "SELECT COUNT(DISTINCT last_name) FROM actor;",
@@ -1600,29 +1492,29 @@
         "schema_cols_sent": 89,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 3.689,
-        "total_latency_s": 3.689,
+        "llm_latency_s": 2.788,
+        "total_latency_s": 2.788,
         "precision_pct": 1.12,
         "recall_pct": 100.0,
         "f1_pct": 2.22,
         "exec_success": true,
         "result_correct": true,
-        "tps": 3.3
+        "tps": 4.3
       },
       "proposed": {
         "sql": "SELECT COUNT(DISTINCT last_name) FROM actor;",
-        "prompt_tokens": 456,
-        "schema_cols_sent": 12,
-        "schema_reduction_pct": 86.52,
-        "linking_latency_ms": 39.6,
-        "llm_latency_s": 3.143,
-        "total_latency_s": 3.1824,
-        "precision_pct": 8.33,
+        "prompt_tokens": 335,
+        "schema_cols_sent": 6,
+        "schema_reduction_pct": 93.26,
+        "linking_latency_ms": 19.8,
+        "llm_latency_s": 2.293,
+        "total_latency_s": 2.3128,
+        "precision_pct": 16.67,
         "recall_pct": 100.0,
-        "f1_pct": 15.38,
+        "f1_pct": 28.58,
         "exec_success": true,
         "result_correct": true,
-        "tps": 3.8,
+        "tps": 5.2,
         "validation": {
           "is_valid": true,
           "repaired": false,
@@ -1631,21 +1523,9 @@
           "warnings": [],
           "join_paths": [
             {
-              "from_table": "language",
-              "from_column": "language_id",
-              "to_table": "film",
-              "to_column": "original_language_id"
-            },
-            {
-              "from_table": "film",
-              "from_column": "film_id",
-              "to_table": "film_actor",
-              "to_column": "film_id"
-            },
-            {
-              "from_table": "film_actor",
+              "from_table": "actor",
               "from_column": "actor_id",
-              "to_table": "actor",
+              "to_table": "film_actor",
               "to_column": "actor_id"
             }
           ],
@@ -1664,8 +1544,6 @@
         "actor.first_name"
       ],
       "prop_selected_tables": [
-        "film",
-        "language",
         "actor",
         "film_actor"
       ],
@@ -1674,14 +1552,8 @@
         "actor.first_name",
         "actor.last_name",
         "actor.last_update",
-        "film.film_id",
-        "film.original_language_id",
         "film_actor.actor_id",
-        "film_actor.film_id",
-        "film_actor.last_update",
-        "language.language_id",
-        "language.last_update",
-        "language.name"
+        "film_actor.last_update"
       ],
       "baseline": {
         "sql": "SELECT first_name FROM actor GROUP BY first_name ORDER BY COUNT(*) DESC LIMIT 1;",
@@ -1689,29 +1561,29 @@
         "schema_cols_sent": 89,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 3.466,
-        "total_latency_s": 3.466,
+        "llm_latency_s": 2.436,
+        "total_latency_s": 2.436,
         "precision_pct": 1.12,
         "recall_pct": 100.0,
         "f1_pct": 2.22,
         "exec_success": true,
         "result_correct": true,
-        "tps": 5.8
+        "tps": 8.2
       },
       "proposed": {
         "sql": "SELECT first_name FROM actor GROUP BY first_name ORDER BY COUNT(*) DESC LIMIT 1;",
-        "prompt_tokens": 457,
-        "schema_cols_sent": 12,
-        "schema_reduction_pct": 86.52,
-        "linking_latency_ms": 37.4,
-        "llm_latency_s": 2.943,
-        "total_latency_s": 2.9807,
-        "precision_pct": 8.33,
+        "prompt_tokens": 336,
+        "schema_cols_sent": 6,
+        "schema_reduction_pct": 93.26,
+        "linking_latency_ms": 18.6,
+        "llm_latency_s": 2.412,
+        "total_latency_s": 2.4301,
+        "precision_pct": 16.67,
         "recall_pct": 100.0,
-        "f1_pct": 15.38,
+        "f1_pct": 28.58,
         "exec_success": true,
         "result_correct": true,
-        "tps": 6.8,
+        "tps": 8.3,
         "validation": {
           "is_valid": true,
           "repaired": false,
@@ -1720,21 +1592,9 @@
           "warnings": [],
           "join_paths": [
             {
-              "from_table": "language",
-              "from_column": "language_id",
-              "to_table": "film",
-              "to_column": "original_language_id"
-            },
-            {
-              "from_table": "film",
-              "from_column": "film_id",
-              "to_table": "film_actor",
-              "to_column": "film_id"
-            },
-            {
-              "from_table": "film_actor",
+              "from_table": "actor",
               "from_column": "actor_id",
-              "to_table": "actor",
+              "to_table": "film_actor",
               "to_column": "actor_id"
             }
           ],
@@ -1753,8 +1613,6 @@
         "actor.first_name"
       ],
       "prop_selected_tables": [
-        "film",
-        "language",
         "actor",
         "film_actor"
       ],
@@ -1763,14 +1621,8 @@
         "actor.first_name",
         "actor.last_name",
         "actor.last_update",
-        "film.film_id",
-        "film.original_language_id",
         "film_actor.actor_id",
-        "film_actor.film_id",
-        "film_actor.last_update",
-        "language.language_id",
-        "language.last_update",
-        "language.name"
+        "film_actor.last_update"
       ],
       "baseline": {
         "sql": "SELECT first_name FROM actor GROUP BY first_name ORDER BY COUNT(*) DESC LIMIT 1;",
@@ -1778,29 +1630,29 @@
         "schema_cols_sent": 89,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.96,
-        "total_latency_s": 2.96,
+        "llm_latency_s": 2.479,
+        "total_latency_s": 2.479,
         "precision_pct": 1.12,
         "recall_pct": 100.0,
         "f1_pct": 2.22,
         "exec_success": true,
         "result_correct": true,
-        "tps": 6.8
+        "tps": 8.1
       },
       "proposed": {
         "sql": "SELECT first_name FROM actor GROUP BY first_name ORDER BY COUNT(*) DESC LIMIT 1;",
-        "prompt_tokens": 456,
-        "schema_cols_sent": 12,
-        "schema_reduction_pct": 86.52,
-        "linking_latency_ms": 33.3,
-        "llm_latency_s": 3.14,
-        "total_latency_s": 3.1734,
-        "precision_pct": 8.33,
+        "prompt_tokens": 335,
+        "schema_cols_sent": 6,
+        "schema_reduction_pct": 93.26,
+        "linking_latency_ms": 19.5,
+        "llm_latency_s": 2.375,
+        "total_latency_s": 2.3949,
+        "precision_pct": 16.67,
         "recall_pct": 100.0,
-        "f1_pct": 15.38,
+        "f1_pct": 28.58,
         "exec_success": true,
         "result_correct": true,
-        "tps": 6.4,
+        "tps": 8.4,
         "validation": {
           "is_valid": true,
           "repaired": false,
@@ -1809,21 +1661,9 @@
           "warnings": [],
           "join_paths": [
             {
-              "from_table": "language",
-              "from_column": "language_id",
-              "to_table": "film",
-              "to_column": "original_language_id"
-            },
-            {
-              "from_table": "film",
-              "from_column": "film_id",
-              "to_table": "film_actor",
-              "to_column": "film_id"
-            },
-            {
-              "from_table": "film_actor",
+              "from_table": "actor",
               "from_column": "actor_id",
-              "to_table": "actor",
+              "to_table": "film_actor",
               "to_column": "actor_id"
             }
           ],
@@ -1843,8 +1683,6 @@
         "actor.last_name"
       ],
       "prop_selected_tables": [
-        "film",
-        "language",
         "actor",
         "film_actor"
       ],
@@ -1853,44 +1691,38 @@
         "actor.first_name",
         "actor.last_name",
         "actor.last_update",
-        "film.film_id",
-        "film.original_language_id",
         "film_actor.actor_id",
-        "film_actor.film_id",
-        "film_actor.last_update",
-        "language.language_id",
-        "language.last_update",
-        "language.name"
+        "film_actor.last_update"
       ],
       "baseline": {
-        "sql": "SELECT first_name || ' ' || last_name AS full_name\nFROM actor\nGROUP BY first_name, last_name\nORDER BY COUNT(*) DESC, first_name, last_name\nLIMIT 1;",
+        "sql": "SELECT first_name || ' ' || last_name AS full_name\nFROM actor\nJOIN film_actor ON actor.actor_id = film_actor.actor_id\nGROUP BY actor.actor_id\nORDER BY COUNT(film_actor.film_id) DESC\nLIMIT 1;",
         "prompt_tokens": 1551,
         "schema_cols_sent": 89,
         "schema_reduction_pct": 0.0,
         "linking_latency_ms": 0.0,
-        "llm_latency_s": 2.974,
-        "total_latency_s": 2.974,
+        "llm_latency_s": 2.755,
+        "total_latency_s": 2.755,
         "precision_pct": 2.25,
         "recall_pct": 100.0,
         "f1_pct": 4.4,
         "exec_success": true,
         "result_correct": false,
-        "tps": 17.1
+        "tps": 25.0
       },
       "proposed": {
-        "sql": "SELECT first_name || ' ' || last_name AS full_name\nFROM actor\nJOIN film_actor ON actor.actor_id = film_actor.actor_id\nGROUP BY actor.actor_id, full_name\nORDER BY COUNT(film_actor.film_id) DESC\nLIMIT 1;",
-        "prompt_tokens": 457,
-        "schema_cols_sent": 12,
-        "schema_reduction_pct": 86.52,
-        "linking_latency_ms": 38.5,
-        "llm_latency_s": 2.933,
-        "total_latency_s": 2.9711,
-        "precision_pct": 16.67,
+        "sql": "SELECT first_name || ' ' || last_name AS full_name\nFROM actor\nGROUP BY first_name, last_name\nORDER BY COUNT(*) DESC, full_name ASC\nLIMIT 1;",
+        "prompt_tokens": 336,
+        "schema_cols_sent": 6,
+        "schema_reduction_pct": 93.26,
+        "linking_latency_ms": 16.9,
+        "llm_latency_s": 2.708,
+        "total_latency_s": 2.725,
+        "precision_pct": 33.33,
         "recall_pct": 100.0,
-        "f1_pct": 28.58,
+        "f1_pct": 50.0,
         "exec_success": true,
         "result_correct": false,
-        "tps": 24.9,
+        "tps": 17.7,
         "validation": {
           "is_valid": true,
           "repaired": false,
@@ -1899,21 +1731,9 @@
           "warnings": [],
           "join_paths": [
             {
-              "from_table": "language",
-              "from_column": "language_id",
-              "to_table": "film",
-              "to_column": "original_language_id"
-            },
-            {
-              "from_table": "film",
-              "from_column": "film_id",
-              "to_table": "film_actor",
-              "to_column": "film_id"
-            },
-            {
-              "from_table": "film_actor",
+              "from_table": "actor",
               "from_column": "actor_id",
-              "to_table": "actor",
+              "to_table": "film_actor",
               "to_column": "actor_id"
             }
           ],

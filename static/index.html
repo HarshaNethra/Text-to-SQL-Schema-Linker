@@ -27,31 +27,23 @@
         <span class="dot dot-green"></span>
       </div>
       <div class="brand-title">
-        <span class="brand-name">NL to SQL Optimizer</span>
-      </div>
-      <div class="active-db-selector-group">
-        <button class="btn btn-sm btn-db-picker" id="btnOpenDbPicker" title="Switch between College Preset and 160+ Spider Benchmark databases">
-          <span class="db-picker-icon">[DB]</span>
-          <span class="db-picker-label">DB:</span>
-          <span class="db-name-text" id="headerActiveDbName">College Preset</span>
-          <span class="db-badge-count" id="headerDbTableCount">4 tables</span>
-          <span class="dropdown-chevron">[v]</span>
-        </button>
+        <span class="brand-name">NL to SQL Schema Optimizer</span>
       </div>
     </div>
 
     <div class="header-actions">
-      <button class="btn btn-sm btn-benchmark" id="btnOpenBenchmarkModal" title="Run Dual Benchmark across 5 Spider Databases (hr_1, car_1, flight_2, world_1, sakila_1)">
-        <span class="btn-icon">[*]</span> Run 5-DB Spider Test
+      <button class="btn btn-sm btn-benchmark" id="btnOpenBenchmarkModal"
+        title="Run Dual Benchmark across 5 Spider Databases (hr_1, car_1, flight_2, world_1, sakila_1)">
+        Run 5-DB Spider Test
       </button>
-      <button class="btn btn-sm btn-outline" id="btnOpenDbModal" title="Browse all Spider databases">
-        <span class="btn-icon">[*]</span> Spider Databases
-      </button>
-      <button class="btn btn-sm btn-success" id="btnLoadPreset" title="Populate college benchmark dataset">
-        <span class="btn-icon">[+]</span> Load Preset
+      <button class="btn btn-sm btn-success" id="btnOpenDbModal" title="Browse and load College Preset and Spider benchmark databases">
+        Load Presets
       </button>
       <button class="btn btn-sm btn-danger" id="btnClearDb" title="Drop all tables in active DB">
-        <span class="btn-icon">[-]</span> Clear Tables
+        Clear Tables
+      </button>
+      <button class="btn btn-sm btn-outline btn-db-toggle" id="btnToggleDbInspector" title="Open Database Inspector Drawer">
+        <span id="toggleDbText">DB Inspector</span>
       </button>
     </div>
   </header>
@@ -68,25 +60,15 @@
           <span class="term-sym">$</span>
           <h2>PROMPT CONSOLE</h2>
         </div>
-
-        <div class="dual-pipeline-tag">
-          <span class="pulse-indicator"></span>
-          <span>DUAL TEST: BASELINE vs PROPOSED</span>
-        </div>
       </div>
 
       <!-- Prompt Input Terminal Area -->
       <div class="cmd-input-container">
-        <!-- Quick Sample Chips for Active Table / DB -->
+        <!-- Quick Sample Chips for Active DB -->
         <div class="quick-sample-chips-bar" id="quickSampleChipsBar">
           <div class="quick-chips-header">
             <div class="quick-chips-title-group">
-              <span class="quick-chips-icon">[?]</span>
-              <span class="quick-chips-label">Sample Prompts (<span id="quickChipsTargetLabel">Student</span>):</span>
-            </div>
-            <div class="quick-chips-toggle-group">
-              <button class="btn-toggle-chip active" id="btnQuickFilterTable">This Table</button>
-              <button class="btn-toggle-chip" id="btnQuickFilterDb">All in DB</button>
+              <span class="quick-chips-label">Sample Prompts (<span id="quickChipsTargetLabel">College Preset</span>):</span>
             </div>
           </div>
           <div class="quick-chips-container" id="quickChipsContainer">
@@ -101,18 +83,14 @@
             rows="2"></textarea>
         </div>
         <div class="cmd-controls">
-          <div class="cmd-controls-left">
-            <span class="shortcut-hint">
-              <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to execute
-            </span>
-          </div>
+          <div class="cmd-controls-left"></div>
           <div class="cmd-controls-right">
             <button class="btn btn-sm btn-warning" id="btnClearInput" title="Clear prompt input text">
               Clear
             </button>
             <button class="btn btn-primary" id="btnExecute">
               <span class="btn-spinner hidden" id="executeSpinner"></span>
-              <span class="btn-text">Execute Dual Test &gt;</span>
+              <span class="btn-text">Execute Test &gt;</span>
             </button>
           </div>
         </div>
@@ -124,8 +102,7 @@
         <!-- Welcome banner -->
         <div class="console-welcome" id="consoleWelcome">
           <div class="welcome-text">
-            <span>[READY]</span> System initialized. Dual Baseline vs Proposed testing active. Enter any prompt to run
-            both pipelines and compare results.
+            System initialized. Enter any natural language prompt or select a sample prompt above to run the pipelines and compare schema metrics.
           </div>
         </div>
 
@@ -155,11 +132,11 @@
                 <div class="sql-box baseline-sql-box" id="baseSqlCardBox">
                   <div class="sql-box-header">
                     <div class="sql-box-header-title">
-                      <span class="sql-box-tag">[BASELINE - FULL SCHEMA]</span>
+                      <span class="sql-box-tag">Baseline (Full Schema)</span>
                       <span class="verdict-chip" id="baseVerdictChip"></span>
                     </div>
                     <button class="btn btn-xs btn-outline" id="btnCopyBaselineSql" title="Copy Baseline SQL">
-                      <span>[COPY]</span>
+                      <span>Copy</span>
                     </button>
                   </div>
                   <pre class="sql-code-block"><code id="baselineSqlCode">-- Baseline SQL</code></pre>
@@ -173,11 +150,11 @@
                 <div class="sql-box proposed-sql-box highlight" id="propSqlCardBox">
                   <div class="sql-box-header">
                     <div class="sql-box-header-title">
-                      <span class="sql-box-tag highlight">[PROPOSED - REDUCED SCHEMA]</span>
+                      <span class="sql-box-tag highlight">Proposed (Reduced Schema)</span>
                       <span class="verdict-chip" id="propVerdictChip"></span>
                     </div>
                     <button class="btn btn-xs btn-outline" id="btnCopyProposedSql" title="Copy Proposed SQL">
-                      <span>[COPY]</span>
+                      <span>Copy</span>
                     </button>
                   </div>
                   <pre class="sql-code-block"><code id="proposedSqlCode">-- Proposed SQL</code></pre>
@@ -191,11 +168,10 @@
                 <div class="sql-box ground-truth-sql-box" id="groundTruthSqlBox">
                   <div class="sql-box-header">
                     <div class="sql-box-header-title">
-                      <span class="sql-box-tag gt-tag">[SPIDER BENCHMARK TARGET SQL]</span>
-                      <span class="verdict-chip gold">[GOLD STANDARD]</span>
+                      <span class="sql-box-tag gt-tag">Spider Benchmark Target SQL</span>
                     </div>
                     <button class="btn btn-xs btn-outline" id="btnCopyGroundTruthSql" title="Copy Spider Target SQL">
-                      <span>[COPY]</span>
+                      <span>Copy</span>
                     </button>
                   </div>
                   <pre class="sql-code-block"><code id="groundTruthSqlCode">-- Ground Truth SQL</code></pre>
@@ -273,7 +249,7 @@
                 <!-- Baseline Result Output -->
                 <div class="output-box baseline-output-box">
                   <div class="output-box-header">
-                    <span class="output-box-tag">[BASELINE RESULT SET]</span>
+                    <span class="output-box-tag">Baseline Results</span>
                     <span class="status-badge success" id="baseExecStatusBadge">SUCCESS</span>
                   </div>
                   <div class="query-status-bar" id="baseQueryNotice"></div>
@@ -288,7 +264,7 @@
                 <!-- Proposed Result Output -->
                 <div class="output-box proposed-output-box highlight">
                   <div class="output-box-header">
-                    <span class="output-box-tag highlight">[PROPOSED RESULT SET]</span>
+                    <span class="output-box-tag highlight">Proposed Results</span>
                     <span class="status-badge success" id="propExecStatusBadge">SUCCESS</span>
                   </div>
                   <div class="query-status-bar" id="propQueryNotice"></div>
@@ -303,7 +279,7 @@
                 <!-- Ground Truth Target Result Output -->
                 <div class="output-box ground-truth-output-box" id="gtResultBox">
                   <div class="output-box-header">
-                    <span class="output-box-tag gt-tag">[SPIDER TARGET RESULT SET]</span>
+                    <span class="output-box-tag gt-tag">Spider Target Results</span>
                     <span class="status-badge gold" id="gtExecStatusBadge">BENCHMARK GOLD</span>
                   </div>
                   <div class="query-status-bar" id="gtQueryNotice"></div>
@@ -349,8 +325,8 @@
 
     </section>
 
-    <!-- RIGHT PANEL: Visual Database Inspector & Live Table Records -->
-    <section class="panel panel-right db-inspector-panel">
+    <!-- SLIDE-OVER DRAWER: Visual Database Inspector & Live Table Records -->
+    <section class="panel panel-right db-inspector-panel" id="dbInspectorPanel">
 
       <!-- DB Panel Header -->
       <div class="panel-header">
@@ -360,11 +336,14 @@
           <span class="active-db-tag" id="inspectorActiveDbTag">college.db</span>
         </div>
         <div class="panel-tools">
-          <button class="btn btn-xs btn-primary" id="btnInspectorSwitchDb" title="Browse and switch Spider databases">
-            <span>[SPIDER DBS]</span>
+          <button class="btn btn-xs btn-primary" id="btnInspectorSwitchDb" title="Browse and switch database presets">
+            <span>Presets</span>
           </button>
           <button class="btn btn-xs btn-outline" id="btnRefreshDb" title="Reload Database &amp; Tables">
-            <span>[RELOAD]</span>
+            <span>Reload</span>
+          </button>
+          <button class="btn btn-xs btn-outline" id="btnCloseDbDrawer" title="Close Drawer (Esc)">
+            <span>Close</span>
           </button>
         </div>
       </div>
@@ -408,7 +387,7 @@
             </tbody>
           </table>
           <div class="empty-table-state hidden" id="emptyTableState">
-            <div class="empty-icon">[NO TABLES]</div>
+            <div class="empty-icon">No Tables Found</div>
             <div class="empty-title">No tables or records found</div>
             <div class="empty-desc">Create a table using natural language / SQL, or load the college demo preset.</div>
             <button class="btn btn-primary btn-sm" id="btnEmptyLoadPreset">Load College Preset</button>
@@ -421,25 +400,28 @@
 
   </main>
 
+  <!-- Slide-out Database Inspector Backdrop -->
+  <div class="db-drawer-backdrop" id="dbDrawerBackdrop"></div>
+
   <!-- Spider Database Selector Modal -->
   <div class="modal-backdrop hidden" id="spiderDbModal">
     <div class="modal-dialog">
       <div class="modal-header">
         <div class="modal-title-group">
-          <span class="modal-icon">[DB]</span>
           <div>
-            <h3>SPIDER BENCHMARK DATABASES</h3>
-            <p class="modal-subtitle">Select from 160+ multi-table SQLite databases or switch back to College Preset</p>
+            <h3>DATABASE PRESETS &amp; BENCHMARKS</h3>
+            <p class="modal-subtitle">Select from College Preset or 160+ Spider multi-table SQLite databases</p>
           </div>
         </div>
-        <button class="modal-close-btn" id="btnCloseDbModal" title="Close modal">[X]</button>
+        <button class="modal-close-btn" id="btnCloseDbModal" title="Close modal">&times;</button>
       </div>
 
       <div class="modal-toolbar">
         <div class="modal-search-box">
           <span class="search-icon">&gt;</span>
-          <input type="text" id="modalDbSearchInput" placeholder="Search 160+ databases by name or table (e.g. concert, singer, flight, car)..." />
-          <button class="btn-search-clear hidden" id="btnClearModalSearch">[X]</button>
+          <input type="text" id="modalDbSearchInput"
+            placeholder="Search 160+ databases by name or table (e.g. concert, singer, flight, car)..." />
+          <button class="btn-search-clear hidden" id="btnClearModalSearch">&times;</button>
         </div>
         <div class="modal-quick-filters">
           <button class="filter-chip active" data-filter="all">All (<span id="filterAllCount">0</span>)</button>
@@ -466,13 +448,13 @@
     <div class="modal-dialog modal-dialog-xl">
       <div class="modal-header">
         <div class="modal-title-group">
-          <span class="modal-icon benchmark-modal-icon">[*]</span>
           <div>
             <h3>SPIDER TOP-5 BENCHMARK EVALUATION</h3>
-            <p class="modal-subtitle">Comparative evaluation on 5 Spider Databases (hr_1, car_1, flight_2, world_1, sakila_1) — Baseline vs. Proposed Schema Reduction</p>
+            <p class="modal-subtitle">Comparative evaluation on 5 Spider Databases (hr_1, car_1, flight_2, world_1,
+              sakila_1) — Baseline vs. Proposed Schema Reduction</p>
           </div>
         </div>
-        <button class="modal-close-btn" id="btnCloseBenchmarkModal" title="Close modal">[X]</button>
+        <button class="modal-close-btn" id="btnCloseBenchmarkModal" title="Close modal">&times;</button>
       </div>
 
       <!-- Benchmark Toolbar / Controls -->
@@ -494,7 +476,8 @@
           <button class="btn btn-danger hidden" id="btnStopBenchmark">
             <span class="btn-text">Stop Test</span>
           </button>
-          <button class="btn btn-outline btn-sm" id="btnLoadCachedBenchmark" title="Load cached 25-query benchmark results">
+          <button class="btn btn-outline btn-sm" id="btnLoadCachedBenchmark"
+            title="Load cached 25-query benchmark results">
             <span>View Cached Results</span>
           </button>
         </div>
@@ -518,75 +501,102 @@
           </div>
           <!-- Live Mini Console Log -->
           <div class="bench-logs-console" id="benchLogsBox">
-            <div class="bench-log-line text-muted">[INITIALIZING] Waiting for test execution...</div>
+            <div class="bench-log-line text-muted">Waiting for test execution...</div>
           </div>
         </div>
 
         <!-- Benchmark Results Dashboard -->
         <div class="bench-dashboard hidden" id="benchDashboardSection">
-          <!-- Summary Metrics Cards Grid -->
-          <div class="bench-metrics-grid">
-            <div class="bench-metric-card highlight-green">
-              <div class="bench-metric-label">Schema Column Reduction</div>
-              <div class="bench-metric-val" id="kpiSchemaRed">73.4%</div>
-              <div class="bench-metric-sub" id="kpiColsSent">36.8 → 7.8 columns sent</div>
+          <!-- View Controls: Database Scope Dropdown + View Mode (Summary vs Query-Wise) -->
+          <div class="bench-view-controls-bar">
+            <div class="bench-control-field">
+              <label class="bench-field-label" for="benchDbSelect">Database Scope</label>
+              <select id="benchDbSelect" class="bench-select">
+                <option value="all">Summary Across All 5 Databases</option>
+                <option value="hr_1">hr_1 Database</option>
+                <option value="car_1">car_1 Database</option>
+                <option value="flight_2">flight_2 Database</option>
+                <option value="world_1">world_1 Database</option>
+                <option value="sakila_1">sakila_1 Database</option>
+              </select>
             </div>
 
-            <div class="bench-metric-card highlight-blue">
-              <div class="bench-metric-label">Prompt Token Savings</div>
-              <div class="bench-metric-val" id="kpiTokenRed">52.2%</div>
-              <div class="bench-metric-sub" id="kpiTokensSent">757 → 362 tokens avg</div>
+            <div class="bench-control-field">
+              <label class="bench-field-label">View Mode</label>
+              <div class="bench-view-mode-group">
+                <button class="btn-toggle-chip active" id="btnBenchModeSummary" data-mode="summary">Summary Metrics</button>
+                <button class="btn-toggle-chip" id="btnBenchModeQuery" data-mode="query">Query-Wise Breakdown</button>
+              </div>
             </div>
 
-            <div class="bench-metric-card highlight-purple">
-              <div class="bench-metric-label">Execution Accuracy</div>
-              <div class="bench-metric-val" id="kpiExecAcc">72.0%</div>
-              <div class="bench-metric-sub" id="kpiBaseAcc">vs 68.0% Baseline</div>
-            </div>
-
-            <div class="bench-metric-card highlight-amber">
-              <div class="bench-metric-label">Schema Macro F1-Score</div>
-              <div class="bench-metric-val" id="kpiMacroF1">46.7%</div>
-              <div class="bench-metric-sub" id="kpiBaseF1">vs 16.4% Baseline</div>
-            </div>
-
-            <div class="bench-metric-card">
-              <div class="bench-metric-label">Average Total Latency</div>
-              <div class="bench-metric-val" id="kpiTotalLat">3.98s</div>
-              <div class="bench-metric-sub" id="kpiLinkingLat">Linking: 1.08s | LLM: 2.90s</div>
-            </div>
-
-            <div class="bench-metric-card">
-              <div class="bench-metric-label">Generation Throughput</div>
-              <div class="bench-metric-val" id="kpiTps">7.1 tps</div>
-              <div class="bench-metric-sub" id="kpiBaseTps">vs 6.8 tps Baseline</div>
+            <!-- Query Selector (Only shown in Query-Wise mode) -->
+            <div class="bench-control-field hidden" id="benchQuerySelectContainer" style="flex: 1; min-width: 260px;">
+              <label class="bench-field-label" for="benchQuerySelect">Select Query</label>
+              <select id="benchQuerySelect" class="bench-select bench-query-select" style="width: 100%;">
+                <!-- Dynamically populated via JS -->
+              </select>
             </div>
           </div>
 
-          <!-- Per-Database Filter Tabs -->
-          <div class="bench-filter-bar">
-            <span class="bench-filter-title">Filter by Database:</span>
-            <div class="bench-filter-chips" id="benchDbFilterChips">
-              <button class="filter-chip active" data-db="all">All DBs (<span id="benchAllCount">0</span>)</button>
-              <button class="filter-chip" data-db="hr_1">hr_1</button>
-              <button class="filter-chip" data-db="car_1">car_1</button>
-              <button class="filter-chip" data-db="flight_2">flight_2</button>
-              <button class="filter-chip" data-db="world_1">world_1</button>
-              <button class="filter-chip" data-db="sakila_1">sakila_1</button>
+          <!-- Query Details Header Banner (Only visible in Query-Wise mode) -->
+          <div class="bench-query-banner hidden" id="benchQueryBanner">
+            <div class="bench-query-banner-header">
+              <span class="bench-db-badge" id="benchQueryDbBadge">hr_1</span>
+              <span class="bench-query-banner-title" id="benchQueryText">Query text</span>
             </div>
           </div>
 
-          <!-- Detailed Queries Comparison List -->
-          <div class="bench-queries-list" id="benchQueriesList">
-            <!-- Dynamic Query Cards generated by JS -->
+          <!-- The Metric Comparison Table (Same structure as Step 4) -->
+          <div class="comparison-table-wrapper" style="margin-top: 10px;">
+            <table class="ranked-table comparison-matrix-table">
+              <thead>
+                <tr>
+                  <th style="width: 38%;">Metric</th>
+                  <th style="width: 31%;">Baseline</th>
+                  <th style="width: 31%;">Proposed</th>
+                </tr>
+              </thead>
+              <tbody id="benchMetricsTableBody">
+                <!-- Populated dynamically via JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Query-Wise SQL Comparison Box (Only visible in Query-Wise mode) -->
+          <div class="bench-query-sql-section hidden" id="benchQuerySqlSection">
+            <div class="bench-sql-compare-grid">
+              <div class="bench-sql-box">
+                <div class="bench-sql-header">
+                  <span>Proposed System SQL</span>
+                  <span id="benchPropSqlStatus" class="status-badge success">PASS</span>
+                </div>
+                <pre class="bench-sql-code" id="benchPropSqlCode">--</pre>
+              </div>
+              <div class="bench-sql-box">
+                <div class="bench-sql-header">
+                  <span>Baseline SQL (Full Schema)</span>
+                  <span id="benchBaseSqlStatus" class="status-badge success">PASS</span>
+                </div>
+                <pre class="bench-sql-code" id="benchBaseSqlCode">--</pre>
+              </div>
+              <div class="bench-sql-box">
+                <div class="bench-sql-header">
+                  <span>Spider Target SQL (Ground Truth)</span>
+                  <span class="status-badge gold">GOLD STANDARD</span>
+                </div>
+                <pre class="bench-sql-code" id="benchGtSqlCode">--</pre>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Initial Placeholder State if No Results Yet -->
         <div class="bench-empty-state" id="benchEmptyState">
-          <div class="empty-icon">[BENCHMARK]</div>
+          <div class="empty-icon">Spider Benchmark</div>
           <h4>Spider Top-5 Benchmark Suite</h4>
-          <p>Run the comparative evaluation across <strong>hr_1, car_1, flight_2, world_1, and sakila_1</strong> to measure Schema Column Reduction, Token Savings, Execution Accuracy, and Latency improvements between the Full-Schema Baseline and the Proposed Schema-Reduced Pipeline.</p>
+          <p>Run the comparative evaluation across <strong>hr_1, car_1, flight_2, world_1, and sakila_1</strong> to
+            measure Schema Column Reduction, Token Savings, Execution Accuracy, and Latency improvements between the
+            Full-Schema Baseline and the Proposed Schema-Reduced Pipeline.</p>
           <div class="empty-actions">
             <button class="btn btn-primary" id="btnEmptyStartBench">Start 5-DB Test (Quick Run)</button>
             <button class="btn btn-outline" id="btnEmptyLoadCached">Load Pre-Computed 25-Q Results</button>

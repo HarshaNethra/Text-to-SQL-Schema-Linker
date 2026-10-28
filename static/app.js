@@ -19,7 +19,7 @@ const state = {
   rawTableRows: [],
   spiderDatabases: [],
   sampleQueries: [],
-  sampleQueriesMode: "table", // 'table' or 'db'
+  sampleQueriesMode: "db",
   modalFilterCategory: "all",
 };
 
@@ -203,35 +203,50 @@ function setupEventListeners() {
     });
   });
 
-  // DB Filter chips in benchmark results
-  document.querySelectorAll("#benchDbFilterChips .filter-chip").forEach((chip) => {
-    chip.addEventListener("click", () => {
-      document.querySelectorAll("#benchDbFilterChips .filter-chip").forEach((c) => c.classList.remove("active"));
-      chip.classList.add("active");
-      benchState.selectedDb = chip.dataset.db || "all";
-      if (benchState.results && benchState.results.results) {
-        renderBenchmarkQueriesList(benchState.results.results);
+  // Benchmark scope dropdown
+  const benchDbSelect = document.getElementById("benchDbSelect");
+  if (benchDbSelect) {
+    benchDbSelect.addEventListener("change", (e) => {
+      benchState.selectedDb = e.target.value;
+      benchState.selectedQueryIndex = 0;
+      if (benchState.results) {
+        renderBenchmarkDashboard(benchState.results);
       }
     });
-  });
+  }
 
-  // Quick sample queries toggle mode (Left Panel)
-  const btnQuickFilterTable = document.getElementById("btnQuickFilterTable");
-  const btnQuickFilterDb = document.getElementById("btnQuickFilterDb");
-  if (btnQuickFilterTable) {
-    btnQuickFilterTable.addEventListener("click", () => {
-      btnQuickFilterTable.classList.add("active");
-      if (btnQuickFilterDb) btnQuickFilterDb.classList.remove("active");
-      state.sampleQueriesMode = "table";
-      loadSampleQueries(state.activeDbId, state.activeTable, "table");
+  // Benchmark View Mode toggle buttons
+  const btnBenchModeSummary = document.getElementById("btnBenchModeSummary");
+  const btnBenchModeQuery = document.getElementById("btnBenchModeQuery");
+  if (btnBenchModeSummary && btnBenchModeQuery) {
+    btnBenchModeSummary.addEventListener("click", () => {
+      btnBenchModeSummary.classList.add("active");
+      btnBenchModeQuery.classList.remove("active");
+      benchState.viewMode = "summary";
+      if (benchState.results) {
+        renderBenchmarkDashboard(benchState.results);
+      }
+    });
+
+    btnBenchModeQuery.addEventListener("click", () => {
+      btnBenchModeQuery.classList.add("active");
+      btnBenchModeSummary.classList.remove("active");
+      benchState.viewMode = "query";
+      benchState.selectedQueryIndex = 0;
+      if (benchState.results) {
+        renderBenchmarkDashboard(benchState.results);
+      }
     });
   }
-  if (btnQuickFilterDb) {
-    btnQuickFilterDb.addEventListener("click", () => {
-      btnQuickFilterDb.classList.add("active");
-      if (btnQuickFilterTable) btnQuickFilterTable.classList.remove("active");
-      state.sampleQueriesMode = "db";
-      loadSampleQueries(state.activeDbId, state.activeTable, "db");
+
+  // Benchmark Query-Wise selector
+  const benchQuerySelect = document.getElementById("benchQuerySelect");
+  if (benchQuerySelect) {
+    benchQuerySelect.addEventListener("change", (e) => {
+      benchState.selectedQueryIndex = parseInt(e.target.value, 10) || 0;
+      if (benchState.results) {
+        renderBenchmarkDashboard(benchState.results);
+      }
     });
   }
 
@@ -248,7 +263,9 @@ function setupEventListeners() {
     }
   };
 
-  btnLoadPreset.addEventListener("click", handleLoadPreset);
+  if (btnLoadPreset) {
+    btnLoadPreset.addEventListener("click", handleLoadPreset);
+  }
   if (btnEmptyLoadPreset) {
     btnEmptyLoadPreset.addEventListener("click", handleLoadPreset);
   }
@@ -270,6 +287,71 @@ function setupEventListeners() {
   tableFilterInput.addEventListener("input", (e) => {
     filterTableRows(e.target.value);
   });
+
+  // DB Inspector Slide-out Drawer (Option 2)
+  const btnToggleDbInspector = document.getElementById("btnToggleDbInspector");
+  if (btnToggleDbInspector) {
+    btnToggleDbInspector.addEventListener("click", () => toggleDbDrawer());
+  }
+
+  const btnCloseDbDrawer = document.getElementById("btnCloseDbDrawer");
+  if (btnCloseDbDrawer) {
+    btnCloseDbDrawer.addEventListener("click", () => toggleDbDrawer(false));
+  }
+
+  const btnCollapseDbPanel = document.getElementById("btnCollapseDbPanel");
+  if (btnCollapseDbPanel) {
+    btnCollapseDbPanel.addEventListener("click", () => toggleDbDrawer(false));
+  }
+
+  const dbDrawerBackdrop = document.getElementById("dbDrawerBackdrop");
+  if (dbDrawerBackdrop) {
+    dbDrawerBackdrop.addEventListener("click", () => toggleDbDrawer(false));
+  }
+
+  // Keyboard shortcut: Escape closes drawer and open modals
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const panel = document.getElementById("dbInspectorPanel");
+      if (panel && panel.classList.contains("open")) {
+        toggleDbDrawer(false);
+      }
+    }
+  });
+}
+
+function toggleDbDrawer(forceState = null) {
+  const panel = document.getElementById("dbInspectorPanel");
+  const backdrop = document.getElementById("dbDrawerBackdrop");
+  const toggleBtn = document.getElementById("btnToggleDbInspector");
+  if (!panel) return;
+
+  const isOpen = forceState !== null
+    ? forceState
+    : !panel.classList.contains("open");
+
+  if (isOpen) {
+    panel.classList.add("open");
+    if (backdrop) backdrop.classList.add("active");
+    if (toggleBtn) toggleBtn.classList.add("active");
+  } else {
+    panel.classList.remove("open");
+    if (backdrop) backdrop.classList.remove("active");
+    if (toggleBtn) toggleBtn.classList.remove("active");
+  }
+}
+
+// Compatibility alias
+const toggleDbInspector = toggleDbDrawer;
+
+function updateActiveDbBadges() {
+  const name = state.activeDbName || state.activeDbId || "College Preset";
+  const tblCount = `${state.tables.length} table${state.tables.length === 1 ? "" : "s"}`;
+
+  if (headerActiveDbName) headerActiveDbName.innerText = name;
+  if (headerDbTableCount) headerDbTableCount.innerText = tblCount;
+  if (inspectorActiveDbTag) inspectorActiveDbTag.innerText = state.activeDbId === "college" ? "college.db" : state.activeDbId;
+  if (modalActiveDbName) modalActiveDbName.innerText = `${name} (${tblCount})`;
 }
 
 // Fetch active database schema, tables, and status
@@ -778,7 +860,7 @@ function renderResultSetTable(exec, noticeElem, headElem, bodyElem, badgeElem) {
     const rows = exec.rows || [];
 
     if (cols.length > 0) {
-      noticeElem.innerHTML = `<span style="color: var(--accent-green);">[OK] Query executed successfully. ${rows.length} row(s) returned:</span>`;
+      noticeElem.innerHTML = `<span style="color: var(--accent-green);">Query executed successfully. ${rows.length} row(s) returned:</span>`;
 
       // Render Header
       const trHead = document.createElement("tr");
@@ -813,7 +895,7 @@ function renderResultSetTable(exec, noticeElem, headElem, bodyElem, badgeElem) {
       }
     } else {
       // Non-SELECT statement (CREATE, INSERT, UPDATE, DELETE, DROP)
-      noticeElem.innerHTML = `<span style="color: var(--accent-green);">[OK] ${exec.message || "Statement executed successfully."}</span>`;
+      noticeElem.innerHTML = `<span style="color: var(--accent-green);">${exec.message || "Statement executed successfully."}</span>`;
       const trEmpty = document.createElement("tr");
       const td = document.createElement("td");
       td.style.padding = "14px";
@@ -825,7 +907,7 @@ function renderResultSetTable(exec, noticeElem, headElem, bodyElem, badgeElem) {
   } else {
     badgeElem.className = "status-badge failed";
     badgeElem.innerText = "FAILED";
-    noticeElem.innerHTML = `<span style="color: var(--accent-rose);">[ERROR] ${exec.error || "Query failed to execute."}</span>`;
+    noticeElem.innerHTML = `<span style="color: var(--accent-rose);">${exec.error || "Query failed to execute."}</span>`;
     const trErr = document.createElement("tr");
     const td = document.createElement("td");
     td.style.padding = "14px";
@@ -906,42 +988,26 @@ function showToast(message, type = "info") {
 }
 
 // ==========================================================================
-// ACTIVE DATABASE BADGES & LABELS
+// SAMPLE BENCHMARK QUERIES (ALWAYS LOADED FOR ACTIVE DATABASE)
 // ==========================================================================
-function updateActiveDbBadges() {
-  const name = state.activeDbName || state.activeDbId || "College Preset";
-  const tblCount = `${state.tables.length} table${state.tables.length === 1 ? "" : "s"}`;
-
-  if (headerActiveDbName) headerActiveDbName.innerText = name;
-  if (headerDbTableCount) headerDbTableCount.innerText = tblCount;
-  if (inspectorActiveDbTag) inspectorActiveDbTag.innerText = state.activeDbId === "college" ? "college.db" : state.activeDbId;
-  if (modalActiveDbName) modalActiveDbName.innerText = `${name} (${tblCount})`;
-}
-
-// ==========================================================================
-// SAMPLE BENCHMARK QUERIES
-// ==========================================================================
-async function loadSampleQueries(dbId, tableName, mode = state.sampleQueriesMode || "table") {
+async function loadSampleQueries(dbId, tableName = null, mode = "db") {
   try {
     const effectiveDb = dbId || state.activeDbId || "college";
-    let url = `${API_BASE}/api/sample-queries?db_id=${encodeURIComponent(effectiveDb)}&limit=10`;
-    if (mode === "table" && tableName) {
-      url += `&table=${encodeURIComponent(tableName)}`;
-    }
+    const url = `${API_BASE}/api/sample-queries?db_id=${encodeURIComponent(effectiveDb)}&limit=12`;
 
     const res = await fetch(url);
     const data = await res.json();
     state.sampleQueries = data.queries || [];
-    renderSampleQueries(tableName, mode);
+    renderSampleQueries(tableName, "db");
   } catch (err) {
     console.error("Error fetching sample queries:", err);
     state.sampleQueries = [];
-    renderSampleQueries(tableName, mode);
+    renderSampleQueries(tableName, "db");
   }
 }
 
-function renderSampleQueries(tableName, mode = "table") {
-  const targetLabel = mode === "table" && tableName ? tableName : state.activeDbName;
+function renderSampleQueries(tableName, mode = "db") {
+  const targetLabel = state.activeDbName || state.activeDbId || "College Preset";
 
   if (quickChipsTargetLabel) quickChipsTargetLabel.innerText = targetLabel;
   if (sampleQueriesTableName) sampleQueriesTableName.innerText = targetLabel;
@@ -950,17 +1016,17 @@ function renderSampleQueries(tableName, mode = "table") {
     sampleQueriesTitleText.innerHTML = `SAMPLE QUERIES FOR <strong>${escapeHtml(targetLabel)}</strong>`;
   }
 
-  // 1. Quick Chips in Prompt Console (Top of Input Area)
+  // Quick Chips in Prompt Console (Top of Input Area)
   if (quickChipsContainer) {
     quickChipsContainer.innerHTML = "";
     if (state.sampleQueries.length === 0) {
-      quickChipsContainer.innerHTML = `<span style="font-size: 11px; color: var(--text-dim); padding: 2px;">No sample queries found for this ${mode}. Type your question below!</span>`;
+      quickChipsContainer.innerHTML = `<span style="font-size: 11px; color: var(--text-dim); padding: 2px;">No sample queries found for this database. Type your question below!</span>`;
     } else {
       state.sampleQueries.slice(0, 8).forEach((q) => {
         const chip = document.createElement("button");
         chip.className = "quick-chip";
         chip.title = `Click to load into prompt. Target SQL: ${q.sql || "N/A"}`;
-        chip.innerHTML = `<span>${escapeHtml(q.question)}</span><span class="quick-chip-run-btn" title="Run immediately">></span>`;
+        chip.innerHTML = `<span>${escapeHtml(q.question)}</span><span class="quick-chip-run-btn" title="Run immediately">&gt;</span>`;
 
         // Click question text -> fill prompt & store expected SQL
         chip.querySelector("span").addEventListener("click", (e) => {
@@ -1171,6 +1237,8 @@ function escapeHtml(str) {
 const benchState = {
   selectedDepth: 1,
   selectedDb: "all",
+  viewMode: "summary",
+  selectedQueryIndex: 0,
   pollInterval: null,
   isExecuting: false,
   results: null,
@@ -1311,7 +1379,7 @@ async function startBenchmark() {
     if (progressBar) progressBar.style.width = "0%";
     if (progressPct) progressPct.innerText = "0%";
     if (statusText) statusText.innerText = "Starting Dual Benchmark on 5 Spider DBs...";
-    if (logsBox) logsBox.innerHTML = `<div class="bench-log-line bench-log-highlight">[INITIALIZING] Preparing benchmark with ${benchState.selectedDepth} query per database...</div>`;
+    if (logsBox) logsBox.innerHTML = `<div class="bench-log-line bench-log-highlight">Initializing: Preparing benchmark with ${benchState.selectedDepth} query per database...</div>`;
 
     showToast(`Initiating Top-5 Spider Benchmark (${benchState.selectedDepth} Q/DB)...`, "info");
 
@@ -1350,137 +1418,264 @@ async function stopBenchmark() {
 }
 
 function renderBenchmarkDashboard(resultsData) {
-  if (!resultsData || !resultsData.summary) return;
-  const summary = resultsData.summary;
+  if (!resultsData) return;
   const allResults = resultsData.results || [];
+  if (allResults.length === 0) return;
 
-  // 1. KPI Cards
-  const kpiSchemaRed = document.getElementById("kpiSchemaRed");
-  const kpiColsSent = document.getElementById("kpiColsSent");
-  const kpiTokenRed = document.getElementById("kpiTokenRed");
-  const kpiTokensSent = document.getElementById("kpiTokensSent");
-  const kpiExecAcc = document.getElementById("kpiExecAcc");
-  const kpiBaseAcc = document.getElementById("kpiBaseAcc");
-  const kpiMacroF1 = document.getElementById("kpiMacroF1");
-  const kpiBaseF1 = document.getElementById("kpiBaseF1");
-  const kpiTotalLat = document.getElementById("kpiTotalLat");
-  const kpiLinkingLat = document.getElementById("kpiLinkingLat");
-  const kpiTps = document.getElementById("kpiTps");
-  const kpiBaseTps = document.getElementById("kpiBaseTps");
-  const benchAllCount = document.getElementById("benchAllCount");
+  const dbSelect = document.getElementById("benchDbSelect");
+  const querySelectContainer = document.getElementById("benchQuerySelectContainer");
+  const querySelect = document.getElementById("benchQuerySelect");
+  const queryBanner = document.getElementById("benchQueryBanner");
+  const queryDbBadge = document.getElementById("benchQueryDbBadge");
+  const queryText = document.getElementById("benchQueryText");
+  const tableBody = document.getElementById("benchMetricsTableBody");
+  const sqlSection = document.getElementById("benchQuerySqlSection");
 
-  const bTok = summary.prompt_tokens?.baseline || 0;
-  const pTok = summary.prompt_tokens?.proposed || 0;
-  const tokRed = bTok > 0 ? (((bTok - pTok) / bTok) * 100).toFixed(1) : "0.0";
+  if (!tableBody) return;
 
-  if (kpiSchemaRed) kpiSchemaRed.innerText = `${summary.schema_reduction_pct?.proposed || 0}%`;
-  if (kpiColsSent) kpiColsSent.innerText = `${summary.schema_cols_sent?.baseline || 0} → ${summary.schema_cols_sent?.proposed || 0} cols sent`;
-  if (kpiTokenRed) kpiTokenRed.innerText = `${tokRed}%`;
-  if (kpiTokensSent) kpiTokensSent.innerText = `${bTok} → ${pTok} tokens avg`;
-  if (kpiExecAcc) kpiExecAcc.innerText = `${summary.exec_accuracy_pct?.proposed || 0}%`;
-  if (kpiBaseAcc) kpiBaseAcc.innerText = `vs ${summary.exec_accuracy_pct?.baseline || 0}% Baseline`;
-  if (kpiMacroF1) kpiMacroF1.innerText = `${summary.macro_f1_pct?.proposed || 0}%`;
-  if (kpiBaseF1) kpiBaseF1.innerText = `vs ${summary.macro_f1_pct?.baseline || 0}% Baseline`;
-  if (kpiTotalLat) kpiTotalLat.innerText = `${summary.total_latency_s?.proposed || 0}s`;
-  if (kpiLinkingLat) kpiLinkingLat.innerText = `Linking: ${summary.linking_latency_ms?.proposed || 0}ms | LLM: ${summary.llm_latency_s?.proposed || 0}s`;
-  if (kpiTps) kpiTps.innerText = `${summary.tps?.proposed || 0} tps`;
-  if (kpiBaseTps) kpiBaseTps.innerText = `vs ${summary.tps?.baseline || 0} tps Baseline`;
-  if (benchAllCount) benchAllCount.innerText = allResults.length;
-
-  // 2. Render Queries List
-  renderBenchmarkQueriesList(allResults);
-}
-
-function renderBenchmarkQueriesList(allResults) {
-  const container = document.getElementById("benchQueriesList");
-  if (!container) return;
-
-  const filtered = benchState.selectedDb === "all"
+  // Filter queries based on selected DB
+  const filteredQueries = benchState.selectedDb === "all"
     ? allResults
     : allResults.filter(r => (r.db_id || "").toLowerCase() === benchState.selectedDb.toLowerCase());
 
-  if (filtered.length === 0) {
-    container.innerHTML = `<div class="bench-log-line text-muted" style="text-align: center; padding: 24px;">No evaluated queries found for '${benchState.selectedDb}'.</div>`;
+  if (filteredQueries.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 24px; color: var(--text-muted);">No evaluated queries found for '${escapeHtml(benchState.selectedDb)}'.</td></tr>`;
     return;
   }
 
-  container.innerHTML = filtered.map((item, idx) => {
+  if (benchState.viewMode === "summary") {
+    // Hide query-specific elements in summary mode
+    if (querySelectContainer) querySelectContainer.classList.add("hidden");
+    if (queryBanner) queryBanner.classList.add("hidden");
+    if (sqlSection) sqlSection.classList.add("hidden");
+
+    // Aggregate metrics across filteredQueries
+    const count = filteredQueries.length || 1;
+    const avg = (fn) => filteredQueries.reduce((sum, r) => sum + (Number(fn(r)) || 0), 0) / count;
+
+    const basePromptTokens = Math.round(avg(r => r.baseline?.prompt_tokens || 0));
+    const propPromptTokens = Math.round(avg(r => r.proposed?.prompt_tokens || 0));
+    const tokenRedPct = basePromptTokens > 0 
+      ? (((basePromptTokens - propPromptTokens) / basePromptTokens) * 100).toFixed(1)
+      : "0.0";
+
+    const baseColsSent = avg(r => r.baseline?.schema_cols_sent || 0).toFixed(1);
+    const propColsSent = avg(r => r.proposed?.schema_cols_sent || 0).toFixed(1);
+    const schemaRedPct = avg(r => r.proposed?.schema_reduction_pct || 0).toFixed(1);
+
+    const linkingMs = avg(r => r.proposed?.linking_latency_ms || 0);
+    const linkingSec = (linkingMs / 1000).toFixed(4);
+
+    const baseLlmLat = avg(r => r.baseline?.llm_latency_s || 0).toFixed(3);
+    const propLlmLat = avg(r => r.proposed?.llm_latency_s || 0).toFixed(3);
+
+    const baseTotLat = avg(r => r.baseline?.total_latency_s || r.baseline?.llm_latency_s || 0).toFixed(3);
+    const propTotLat = avg(r => r.proposed?.total_latency_s || r.proposed?.llm_latency_s || 0).toFixed(3);
+
+    const basePrec = avg(r => r.baseline?.precision_pct || 0).toFixed(1);
+    const propPrec = avg(r => r.proposed?.precision_pct || 0).toFixed(1);
+
+    const baseRecall = avg(r => r.baseline?.recall_pct || 0).toFixed(1);
+    const propRecall = avg(r => r.proposed?.recall_pct || 0).toFixed(1);
+
+    const baseF1 = avg(r => r.baseline?.f1_pct || 0).toFixed(1);
+    const propF1 = avg(r => r.proposed?.f1_pct || 0).toFixed(1);
+
+    const baseTps = avg(r => r.baseline?.tps || 0).toFixed(1);
+    const propTps = avg(r => r.proposed?.tps || 0).toFixed(1);
+
+    // Required columns sufficiency rate
+    let propSuffCount = 0;
+    filteredQueries.forEach(r => {
+      const gt = (r.gt_cols || []).map(c => c.toLowerCase());
+      const pCols = (r.prop_selected_cols || []).map(c => c.toLowerCase());
+      if (gt.length === 0 || gt.every(c => pCols.includes(c))) {
+        propSuffCount++;
+      }
+    });
+    const propSuffPct = ((propSuffCount / count) * 100).toFixed(1);
+
+    tableBody.innerHTML = `
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Prompt Tokens</td>
+        <td><strong>${basePromptTokens} tok</strong></td>
+        <td><strong>${propPromptTokens} tok</strong>${Number(tokenRedPct) > 0 ? ` <span style="font-size: 11px; color: var(--accent-cyan);">(-${tokenRedPct}%)</span>` : ""}</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Columns Sent</td>
+        <td><strong>${baseColsSent} columns</strong></td>
+        <td><strong>${propColsSent} columns</strong>${Number(schemaRedPct) > 0 ? ` <span style="font-size: 11px; color: var(--accent-cyan);">(-${schemaRedPct}%)</span>` : ""}</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Schema Reduction</td>
+        <td style="color: var(--text-muted);">0.0% (Full Schema)</td>
+        <td><strong>${schemaRedPct}%</strong></td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Algorithm Linking Latency</td>
+        <td style="color: var(--text-muted);">0.0000s (None)</td>
+        <td>${linkingSec}s (${linkingMs.toFixed(1)}ms)</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">LLM Generation Latency</td>
+        <td>${baseLlmLat}s</td>
+        <td>${propLlmLat}s</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">End-to-End (Total) Latency</td>
+        <td>${baseTotLat}s</td>
+        <td>${propTotLat}s</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Schema Linking Precision</td>
+        <td><strong>${basePrec}%</strong></td>
+        <td><strong>${propPrec}%</strong></td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Schema Recall Accuracy</td>
+        <td><strong>${baseRecall}%</strong></td>
+        <td><strong>${propRecall}%</strong></td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Schema F1-Score</td>
+        <td><strong>${baseF1}%</strong></td>
+        <td><strong>${propF1}%</strong></td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Generation Throughput</td>
+        <td>${baseTps} tok/s</td>
+        <td>${propTps} tok/s</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Required Columns Sufficiency</td>
+        <td><strong>100.0% (Yes - All Required Sent in ${filteredQueries.length}/${filteredQueries.length} Queries)</strong></td>
+        <td><strong style="color: var(--accent-green);">${propSuffPct}% (Yes - All Required Sent in ${propSuffCount}/${filteredQueries.length} Queries)</strong></td>
+      </tr>
+    `;
+  } else {
+    // Query-Wise View
+    if (querySelectContainer) querySelectContainer.classList.remove("hidden");
+    if (queryBanner) queryBanner.classList.remove("hidden");
+    if (sqlSection) sqlSection.classList.remove("hidden");
+
+    // Populate Query Select Options
+    if (querySelect) {
+      querySelect.innerHTML = filteredQueries.map((r, i) => {
+        const qShort = r.question ? (r.question.length > 75 ? r.question.substring(0, 75) + "..." : r.question) : `Query ${i + 1}`;
+        return `<option value="${i}" ${i === benchState.selectedQueryIndex ? "selected" : ""}>[${r.db_id}] Q${i + 1}: ${escapeHtml(qShort)}</option>`;
+      }).join("");
+    }
+
+    if (benchState.selectedQueryIndex >= filteredQueries.length) {
+      benchState.selectedQueryIndex = 0;
+    }
+
+    const item = filteredQueries[benchState.selectedQueryIndex];
+    if (!item) return;
+
     const b = item.baseline || {};
     const p = item.proposed || {};
-    const bOk = b.result_correct;
-    const pOk = p.result_correct;
 
-    let verdictBadge = "";
-    if (bOk && pOk) {
-      verdictBadge = `<span class="bench-verdict-badge badge-both-pass">BOTH PASS</span>`;
-    } else if (pOk && !bOk) {
-      verdictBadge = `<span class="bench-verdict-badge badge-prop-pass">PROPOSED PASS</span>`;
-    } else if (bOk && !pOk) {
-      verdictBadge = `<span class="bench-verdict-badge badge-base-pass">BASELINE PASS</span>`;
-    } else {
-      verdictBadge = `<span class="bench-verdict-badge badge-mismatch">MISMATCH</span>`;
-    }
+    // Update query banner
+    if (queryDbBadge) queryDbBadge.innerText = item.db_id || "Spider";
+    if (queryText) queryText.innerText = item.question || "";
 
     const bTok = b.prompt_tokens || 0;
     const pTok = p.prompt_tokens || 0;
-    const tokRed = bTok > 0 ? (((bTok - pTok) / bTok) * 100).toFixed(0) : "0";
-    const colRed = p.schema_reduction_pct || 0;
+    const tokRed = bTok > 0 ? (((bTok - pTok) / bTok) * 100).toFixed(1) : "0.0";
+    const colRed = p.schema_reduction_pct !== undefined ? Number(p.schema_reduction_pct).toFixed(1) : "0.0";
+    const linkMs = p.linking_latency_ms || 0;
 
-    return `
-      <div class="bench-query-card" id="benchCard_${idx}">
-        <div class="bench-query-header" onclick="toggleBenchCardDetails(${idx})">
-          <div class="bench-query-title-group">
-            <span class="bench-db-badge">${escapeHtml(item.db_id || "spider")}</span>
-            <span class="bench-query-text" title="${escapeHtml(item.question)}">${escapeHtml(item.question)}</span>
-          </div>
-          <div class="bench-query-badges">
-            <span class="bench-stat-pill stat-green">-${colRed}% cols</span>
-            <span class="bench-stat-pill">-${tokRed}% tokens</span>
-            <span class="bench-stat-pill">${p.total_latency_s || p.llm_latency_s || 0}s</span>
-            ${verdictBadge}
-            <button class="bench-query-toggle-btn">[v]</button>
-          </div>
-        </div>
-        <div class="bench-query-details hidden" id="benchDetails_${idx}">
-          <div class="bench-sql-compare-grid">
-            <div class="bench-sql-box">
-              <div class="bench-sql-header">
-                <span>Proposed System SQL (-${colRed}% Schema)</span>
-                <span class="${pOk ? 'text-success' : 'text-danger'}">${pOk ? '[PASS] Correct' : '[FAIL] Mismatch'}</span>
-              </div>
-              <pre class="bench-sql-code">${escapeHtml(p.sql || "(None generated)")}</pre>
-            </div>
-            <div class="bench-sql-box">
-              <div class="bench-sql-header">
-                <span>Baseline SQL (Full Schema)</span>
-                <span class="${bOk ? 'text-success' : 'text-danger'}">${bOk ? '[PASS] Correct' : '[FAIL] Mismatch'}</span>
-              </div>
-              <pre class="bench-sql-code">${escapeHtml(b.sql || "(None generated)")}</pre>
-            </div>
-            <div class="bench-sql-box">
-              <div class="bench-sql-header">
-                <span>Ground Truth SQL (Spider Gold)</span>
-                <span class="text-muted">Gold Label</span>
-              </div>
-              <pre class="bench-sql-code">${escapeHtml(item.gt_sql || "(Not specified)")}</pre>
-            </div>
-          </div>
-          <div class="bench-schema-pruned-info">
-            <span><strong>Retained Tables:</strong> ${(item.prop_selected_tables || []).join(', ') || 'N/A'}</span>
-            <span>•</span>
-            <span><strong>Columns Sent:</strong> ${p.schema_cols_sent || 0} / ${b.schema_cols_sent || 0}</span>
-            <span>•</span>
-            <span><strong>F1 Score:</strong> ${p.f1_pct || 0}% (Recall: ${p.recall_pct || 0}%)</span>
-          </div>
-        </div>
-      </div>
+    // Check sufficiency for this query
+    const gtCols = (item.gt_cols || []).map(c => c.toLowerCase());
+    const propCols = (item.prop_selected_cols || []).map(c => c.toLowerCase());
+    const missing = gtCols.filter(c => !propCols.includes(c));
+    const sentReq = gtCols.length - missing.length;
+    const coverage = gtCols.length > 0 ? ((sentReq / gtCols.length) * 100).toFixed(1) : "100.0";
+
+    let propSuffHtml = "";
+    if (missing.length === 0) {
+      propSuffHtml = `<strong style="color: var(--accent-green);">100.0% (Yes - All Required Sent: ${sentReq}/${gtCols.length})</strong>`;
+    } else {
+      propSuffHtml = `<strong style="color: var(--accent-orange);">${coverage}% (Incomplete - Missing ${missing.length}: ${missing.join(', ')})</strong>`;
+    }
+
+    tableBody.innerHTML = `
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Prompt Tokens</td>
+        <td><strong>${bTok} tok</strong></td>
+        <td><strong>${pTok} tok</strong>${Number(tokRed) > 0 ? ` <span style="font-size: 11px; color: var(--accent-cyan);">(-${tokRed}%)</span>` : ""}</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Columns Sent</td>
+        <td><strong>${b.schema_cols_sent || 0} columns</strong></td>
+        <td><strong>${p.schema_cols_sent || 0} columns</strong>${Number(colRed) > 0 ? ` <span style="font-size: 11px; color: var(--accent-cyan);">(-${colRed}%)</span>` : ""}</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Schema Reduction</td>
+        <td style="color: var(--text-muted);">0.0% (Full Schema)</td>
+        <td><strong>${colRed}%</strong></td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Algorithm Linking Latency</td>
+        <td style="color: var(--text-muted);">0.0000s (None)</td>
+        <td>${(linkMs / 1000).toFixed(4)}s (${linkMs.toFixed(1)}ms)</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">LLM Generation Latency</td>
+        <td>${(b.llm_latency_s || 0).toFixed(3)}s</td>
+        <td>${(p.llm_latency_s || 0).toFixed(3)}s</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">End-to-End (Total) Latency</td>
+        <td>${(b.total_latency_s || b.llm_latency_s || 0).toFixed(3)}s</td>
+        <td>${(p.total_latency_s || p.llm_latency_s || 0).toFixed(3)}s</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Schema Linking Precision</td>
+        <td><strong>${(b.precision_pct || 0).toFixed(1)}%</strong></td>
+        <td><strong>${(p.precision_pct || 0).toFixed(1)}%</strong></td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Schema Recall Accuracy</td>
+        <td><strong>${(b.recall_pct || 0).toFixed(1)}%</strong></td>
+        <td><strong>${(p.recall_pct || 0).toFixed(1)}%</strong></td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Schema F1-Score</td>
+        <td><strong>${(b.f1_pct || 0).toFixed(1)}%</strong></td>
+        <td><strong>${(p.f1_pct || 0).toFixed(1)}%</strong></td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Generation Throughput</td>
+        <td>${(b.tps || 0).toFixed(1)} tok/s</td>
+        <td>${(p.tps || 0).toFixed(1)} tok/s</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 600; color: var(--text-main);">Required Columns Sufficiency</td>
+        <td><strong>100.0% (Yes - All Required Sent: ${gtCols.length}/${gtCols.length})</strong></td>
+        <td>${propSuffHtml}</td>
+      </tr>
     `;
-  }).join("");
-}
 
-window.toggleBenchCardDetails = function(idx) {
-  const details = document.getElementById(`benchDetails_${idx}`);
-  if (details) {
-    details.classList.toggle("hidden");
+    // SQL code & badges
+    const propSqlCode = document.getElementById("benchPropSqlCode");
+    const baseSqlCode = document.getElementById("benchBaseSqlCode");
+    const gtSqlCode = document.getElementById("benchGtSqlCode");
+    const propStatus = document.getElementById("benchPropSqlStatus");
+    const baseStatus = document.getElementById("benchBaseSqlStatus");
+
+    if (propSqlCode) propSqlCode.innerText = p.sql || "(No SQL generated)";
+    if (baseSqlCode) baseSqlCode.innerText = b.sql || "(No SQL generated)";
+    if (gtSqlCode) gtSqlCode.innerText = item.gt_sql || "(No Gold SQL)";
+
+    if (propStatus) {
+      propStatus.className = p.result_correct ? "status-badge success" : "status-badge error";
+      propStatus.innerText = p.result_correct ? "PASS" : "MISMATCH";
+    }
+    if (baseStatus) {
+      baseStatus.className = b.result_correct ? "status-badge success" : "status-badge error";
+      baseStatus.innerText = b.result_correct ? "PASS" : "MISMATCH";
+    }
   }
-};
+}
