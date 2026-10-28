@@ -1,6 +1,0 @@
-ID,DB_ID,Question,Full_Cols,Reduced_Cols,Schema_Red_Pct,Token_Red_Pct,Base_Exec,Prop_Exec,Base_Correct,Prop_Correct,Table_Recall,Col_Recall
-1,concert_singer,How many singers do we have?,21,6,71.43,27.73,True,True,False,False,1.0,1.0
-2,concert_singer,What is the total number of singers?,21,6,71.43,28.41,True,True,False,True,1.0,1.0
-3,concert_singer,"Show name, country, age for all singers ordered by age from the oldest to the youngest.",21,7,66.67,26.61,True,True,False,False,1.0,1.0
-4,concert_singer,"What are the names, countries, and ages for every singer in descending order of age?",21,7,66.67,26.42,True,True,False,False,1.0,1.0
-5,concert_singer,"What is the average, minimum, and maximum age of all singers from France?",21,7,66.67,26.63,True,True,False,False,1.0,0.5

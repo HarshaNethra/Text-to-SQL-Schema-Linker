@@ -200,7 +200,7 @@ def get_schema(db_path: str = DEFAULT_DB_PATH) -> Dict[str, Dict[str, str]]:
         }
     """
     if not os.path.exists(db_path):
-        initialize_database(db_path, load_preset=False)
+        initialize_database(db_path, load_preset=(os.path.basename(db_path) == "college.db"))
 
     mtime = os.path.getmtime(db_path) if os.path.exists(db_path) else 0.0
     cache_key = (os.path.abspath(db_path), mtime)
@@ -239,7 +239,7 @@ def get_relationships(db_path: str = DEFAULT_DB_PATH) -> List[Dict[str, str]]:
         ]
     """
     if not os.path.exists(db_path):
-        initialize_database(db_path, load_preset=False)
+        initialize_database(db_path, load_preset=(os.path.basename(db_path) == "college.db"))
 
     mtime = os.path.getmtime(db_path) if os.path.exists(db_path) else 0.0
     cache_key = (os.path.abspath(db_path), mtime)
@@ -354,7 +354,7 @@ def execute_query(
         }
     """
     if not os.path.exists(db_path):
-        initialize_database(db_path, load_preset=False)
+        initialize_database(db_path, load_preset=(os.path.basename(db_path) == "college.db"))
 
     is_safe, reason = validate_sql_safety(sql, allow_modifications=allow_modifications, read_only=read_only)
     if not is_safe:
@@ -455,7 +455,7 @@ def execute_sandboxed_query(
     Guarantees no state changes to db_path on disk, ensuring 100% independent testing.
     """
     if not os.path.exists(db_path):
-        initialize_database(db_path, load_preset=False)
+        initialize_database(db_path, load_preset=(os.path.basename(db_path) == "college.db"))
 
     is_safe, reason = validate_sql_safety(sql, allow_modifications=allow_modifications, read_only=read_only)
     if not is_safe:

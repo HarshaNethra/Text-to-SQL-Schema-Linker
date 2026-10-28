@@ -33,7 +33,10 @@ from schema_linker import SchemaLinker
 
 ACTIVE_DB_PATH = DEFAULT_DB_PATH
 ACTIVE_DB_ID = "college"
-initialize_database(ACTIVE_DB_PATH, load_preset=False)
+if not os.path.exists(ACTIVE_DB_PATH) or not list_tables(ACTIVE_DB_PATH):
+    initialize_database(ACTIVE_DB_PATH, load_preset=True)
+else:
+    initialize_database(ACTIVE_DB_PATH, load_preset=False)
 
 linker = SchemaLinker()
 llm = LLMClient()

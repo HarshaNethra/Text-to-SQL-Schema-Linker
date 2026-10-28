@@ -23,6 +23,19 @@ class SpiderAdapter:
         self.dev_file = os.path.join(spider_dir, "dev.json")
         self.train_file = os.path.join(spider_dir, "train_spider.json")
 
+        # Auto-extract zip if tables_file or database_dir is missing but spider_data.zip exists
+        zip_path = os.path.join(os.path.dirname(spider_dir), "spider_data.zip")
+        if (not os.path.exists(self.tables_file) or not os.path.exists(self.database_dir)) and os.path.exists(zip_path):
+            try:
+                import zipfile
+                if zipfile.is_zipfile(zip_path):
+                    print(f"[SpiderAdapter] Extracting Spider dataset from {zip_path}...")
+                    with zipfile.ZipFile(zip_path, "r") as zf:
+                        zf.extractall(os.path.dirname(spider_dir))
+                    print("[SpiderAdapter] Extraction completed successfully.")
+            except Exception as e:
+                print(f"[SpiderAdapter] Notice: Could not auto-extract {zip_path}: {e}")
+
         self._tables_cache: Optional[Dict[str, Dict[str, Any]]] = None
         self._dev_cache: Optional[List[Dict[str, Any]]] = None
 

@@ -24,8 +24,22 @@ def get_sentence_transformer(model_name: str = "all-MiniLM-L6-v2"):
         local_dir = os.path.join(base_dir, "models", model_name)
         
         if os.path.isdir(local_dir):
-            _TRANSFORMER_MODEL = SentenceTransformer(local_dir)
-        else:
+            try:
+                # Validate that weights are not a tiny Git LFS pointer (< 100KB)
+                weights_path = os.path.join(local_dir, "model.safetensors")
+                bin_path = os.path.join(local_dir, "pytorch_model.bin")
+                is_pointer = False
+                for p in [weights_path, bin_path]:
+                    if os.path.exists(p) and os.path.getsize(p) < 100000:
+                        is_pointer = True
+                        break
+                if not is_pointer:
+                    _TRANSFORMER_MODEL = SentenceTransformer(local_dir)
+            except Exception as e:
+                print(f"[Warning] Failed loading local model from {local_dir}: {e}. Downloading from HuggingFace Hub...")
+                _TRANSFORMER_MODEL = None
+
+        if _TRANSFORMER_MODEL is None:
             # Download and persist locally for fast offline access
             _TRANSFORMER_MODEL = SentenceTransformer(model_name)
             try:
