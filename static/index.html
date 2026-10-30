@@ -36,8 +36,11 @@
         title="Run Dual Benchmark across 5 Spider Databases (hr_1, car_1, flight_2, world_1, sakila_1)">
         Run 5-DB Spider Test
       </button>
-      <button class="btn btn-sm btn-success" id="btnOpenDbModal" title="Browse and load College Preset and Spider benchmark databases">
-        Load Presets
+      <button class="btn btn-sm btn-analytics" id="btnOpenAnalyticsModal" title="Visual line graphs and benchmark charts for Spider dataset tests">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -2px;">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg>
+        Benchmark Visualizations
       </button>
       <button class="btn btn-sm btn-danger" id="btnClearDb" title="Drop all tables in active DB">
         Clear Tables
@@ -319,6 +322,134 @@
             </div>
           </div>
 
+          <!-- STEP 5: Visual Performance Analytics & Comparison (Line Graphs & Charts) -->
+          <div class="step-card" id="queryVisualAnalyticsCard">
+            <div class="step-header">
+              <span class="step-badge">STEP 5</span>
+              <span class="step-title">VISUAL PERFORMANCE ANALYTICS (BASELINE vs PROPOSED)</span>
+            </div>
+            <div class="step-body">
+              <!-- KPI Summary Bar for the Direct Query -->
+              <div class="direct-kpi-bar">
+                <div class="direct-kpi-item">
+                  <span class="direct-kpi-title">Schema Reduction</span>
+                  <span class="direct-kpi-val text-accent-cyan" id="directKpiSchemaRed">0%</span>
+                  <span class="direct-kpi-desc" id="directKpiSchemaDesc">Columns pruned</span>
+                </div>
+                <div class="direct-kpi-item">
+                  <span class="direct-kpi-title">Token Savings</span>
+                  <span class="direct-kpi-val text-accent-green" id="directKpiTokenSavings">0%</span>
+                  <span class="direct-kpi-desc" id="directKpiTokenDesc">Prompt tokens saved</span>
+                </div>
+                <div class="direct-kpi-item">
+                  <span class="direct-kpi-title">Execution Result</span>
+                  <span class="direct-kpi-val text-accent-purple" id="directKpiVerdict">MATCH</span>
+                  <span class="direct-kpi-desc" id="directKpiVerdictDesc">Execution status</span>
+                </div>
+                <div class="direct-kpi-item">
+                  <span class="direct-kpi-title">Linking Overhead</span>
+                  <span class="direct-kpi-val text-accent-amber" id="directKpiLinkTime">0 ms</span>
+                  <span class="direct-kpi-desc">In-memory 4-factor scoring</span>
+                </div>
+              </div>
+
+              <!-- Visual Charts Grid (6 Standardized Metrics - Strictly NO Horizontal Bars) -->
+              <div class="direct-charts-grid">
+
+                <!-- Chart 1: Prompt Tokens Sent (Vertical Grouped Bar Chart) -->
+                <div class="direct-chart-box">
+                  <div class="direct-chart-header">
+                    <div>
+                      <h4 class="direct-chart-title">Prompt Context Tokens</h4>
+                      <p class="direct-chart-subtitle">Prompt token footprint sent to LLM (Baseline vs. Proposed)</p>
+                    </div>
+                    <div class="chart-legend-compact">
+                      <span class="legend-item"><span class="legend-dot baseline-dot"></span> Baseline</span>
+                      <span class="legend-item"><span class="legend-dot proposed-dot"></span> Proposed</span>
+                    </div>
+                  </div>
+                  <div class="direct-chart-canvas" id="directChartTokens"></div>
+                </div>
+
+                <!-- Chart 2: Schema Columns Sent (Vertical Grouped Bar Chart) -->
+                <div class="direct-chart-box">
+                  <div class="direct-chart-header">
+                    <div>
+                      <h4 class="direct-chart-title">Schema Columns Sent</h4>
+                      <p class="direct-chart-subtitle">Total schema columns sent in context to LLM</p>
+                    </div>
+                    <div class="chart-legend-compact">
+                      <span class="legend-item"><span class="legend-dot baseline-dot"></span> Baseline</span>
+                      <span class="legend-item"><span class="legend-dot proposed-dot"></span> Proposed</span>
+                    </div>
+                  </div>
+                  <div class="direct-chart-canvas" id="directChartCols"></div>
+                </div>
+
+                <!-- Chart 3: SQL Execution Accuracy (Vertical Grouped Bar Chart) -->
+                <div class="direct-chart-box">
+                  <div class="direct-chart-header">
+                    <div>
+                      <h4 class="direct-chart-title">SQL Execution Accuracy</h4>
+                      <p class="direct-chart-subtitle">Execution result match against target output (0% - 100%)</p>
+                    </div>
+                    <div class="chart-legend-compact">
+                      <span class="legend-item"><span class="legend-dot baseline-dot"></span> Baseline</span>
+                      <span class="legend-item"><span class="legend-dot proposed-dot"></span> Proposed</span>
+                    </div>
+                  </div>
+                  <div class="direct-chart-canvas" id="directChartAccuracy"></div>
+                </div>
+
+                <!-- Chart 4: Information Retrieval Quality (Vertical Grouped Bar Chart) -->
+                <div class="direct-chart-box">
+                  <div class="direct-chart-header">
+                    <div>
+                      <h4 class="direct-chart-title">Information Retrieval Quality</h4>
+                      <p class="direct-chart-subtitle">Schema selection Precision, Recall &amp; F1-Score (%)</p>
+                    </div>
+                    <div class="chart-legend-compact">
+                      <span class="legend-item"><span class="legend-dot baseline-dot"></span> Baseline</span>
+                      <span class="legend-item"><span class="legend-dot proposed-dot"></span> Proposed</span>
+                    </div>
+                  </div>
+                  <div class="direct-chart-canvas" id="directChartIR"></div>
+                </div>
+
+                <!-- Chart 5: Pipeline Turnaround Latency (Line Graph / Trajectory) -->
+                <div class="direct-chart-box">
+                  <div class="direct-chart-header">
+                    <div>
+                      <h4 class="direct-chart-title">Pipeline Latency Trajectory</h4>
+                      <p class="direct-chart-subtitle">Turnaround time across Linking, LLM Inference &amp; DB Execution</p>
+                    </div>
+                    <div class="chart-legend-compact">
+                      <span class="legend-item"><span class="legend-dot baseline-dot"></span> Baseline</span>
+                      <span class="legend-item"><span class="legend-dot proposed-dot"></span> Proposed</span>
+                    </div>
+                  </div>
+                  <div class="direct-chart-canvas" id="directChartLatency"></div>
+                </div>
+
+                <!-- Chart 6: Generation Throughput (Vertical Grouped Bar Chart) -->
+                <div class="direct-chart-box">
+                  <div class="direct-chart-header">
+                    <div>
+                      <h4 class="direct-chart-title">Generation Throughput</h4>
+                      <p class="direct-chart-subtitle">LLM generation speed in tokens per second (tok/s)</p>
+                    </div>
+                    <div class="chart-legend-compact">
+                      <span class="legend-item"><span class="legend-dot baseline-dot"></span> Baseline</span>
+                      <span class="legend-item"><span class="legend-dot proposed-dot"></span> Proposed</span>
+                    </div>
+                  </div>
+                  <div class="direct-chart-canvas" id="directChartThroughput"></div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -454,7 +585,15 @@
               sakila_1) — Baseline vs. Proposed Schema Reduction</p>
           </div>
         </div>
-        <button class="modal-close-btn" id="btnCloseBenchmarkModal" title="Close modal">&times;</button>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button class="btn btn-xs btn-primary" id="btnSwitchToVisualsFromRunner" title="Switch to graphical charts view">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: -1px; margin-right: 3px;">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+            View Visual Graphs
+          </button>
+          <button class="modal-close-btn" id="btnCloseBenchmarkModal" title="Close modal">&times;</button>
+        </div>
       </div>
 
       <!-- Benchmark Toolbar / Controls -->
@@ -612,6 +751,180 @@
       </div>
     </div>
   </div>
+
+  <!-- Spider Benchmark Visual Analytics Modal (Line Graphs & Charts) -->
+  <div class="modal-backdrop hidden" id="benchmarkAnalyticsModal">
+    <div class="modal-dialog modal-dialog-xl analytics-modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div>
+            <h3>SPIDER BENCHMARK VISUAL ANALYTICS &amp; TRENDS</h3>
+            <p class="modal-subtitle">Empirical performance visualizations across 5 Spider Databases (flight_2, car_1, world_1, hr_1, sakila_1)</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnCloseAnalyticsModal" title="Close modal">&times;</button>
+      </div>
+
+      <!-- Analytics Toolbar -->
+      <div class="modal-toolbar analytics-toolbar">
+        <div class="analytics-filter-group">
+          <button class="btn-toggle-chip active" id="btnChartFilterAll" data-target="all">All Visualizations</button>
+          <button class="btn-toggle-chip" id="btnChartFilterTokens" data-target="chart-card-tokens">Prompt Tokens</button>
+          <button class="btn-toggle-chip" id="btnChartFilterCols" data-target="chart-card-cols">Schema Columns</button>
+          <button class="btn-toggle-chip" id="btnChartFilterAccuracy" data-target="chart-card-accuracy">Execution Accuracy</button>
+          <button class="btn-toggle-chip" id="btnChartFilterIR" data-target="chart-card-ir">Precision / Recall / F1</button>
+          <button class="btn-toggle-chip" id="btnChartFilterLatency" data-target="chart-card-latency">Latency Curve</button>
+          <button class="btn-toggle-chip" id="btnChartFilterThroughput" data-target="chart-card-throughput">Throughput (TPS)</button>
+        </div>
+        <div class="analytics-actions">
+          <button class="btn btn-outline btn-xs" id="btnReloadVisualData" title="Reload fresh benchmark data from server">
+            <span>Reload Data</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Analytics Body -->
+      <div class="modal-body analytics-modal-body">
+        <!-- KPI Summary Cards -->
+        <div class="analytics-kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Schema Compression</div>
+            <div class="kpi-value text-accent-cyan" id="kpiSchemaRed">77.8%</div>
+            <div class="kpi-sub">36.8 &rarr; 5.8 columns avg sent</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Context Token Savings</div>
+            <div class="kpi-value text-accent-green" id="kpiTokenSavings">57.8%</div>
+            <div class="kpi-sub">757 &rarr; 319 tokens/query</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">SQL Execution Accuracy</div>
+            <div class="kpi-value text-accent-purple" id="kpiExecAccuracy">80.0%</div>
+            <div class="kpi-sub">Proposed beats Baseline (72.0%)</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Graph Linking Latency</div>
+            <div class="kpi-value text-accent-amber" id="kpiLinkingLatency">21.9 ms</div>
+            <div class="kpi-sub">Vectorized in-memory graph search</div>
+          </div>
+        </div>
+
+        <!-- Charts Grid (Strictly Line Graphs and Vertical Grouped Bars - No Horizontal Bars) -->
+        <div class="analytics-charts-grid" id="analyticsChartsGrid">
+
+          <!-- Chart 1: Scalability Curve (Line Graph) -->
+          <div class="chart-card" id="chart-card-tokens">
+            <div class="chart-card-header">
+              <div class="chart-card-titles">
+                <h4 class="chart-card-title">Scalability Curve: Database Scale vs. Prompt Tokens Sent</h4>
+                <p class="chart-card-desc">Databases ordered by increasing schema size (flight_2 &rarr; car_1 &rarr; world_1 &rarr; hr_1 &rarr; sakila_1). Baseline scales linearly with schema size, while Proposed stays bounded.</p>
+              </div>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-dot baseline-dot"></span> Baseline (Full Schema)</span>
+                <span class="legend-item"><span class="legend-dot proposed-dot"></span> Proposed (Reduced Schema)</span>
+              </div>
+            </div>
+            <div class="chart-canvas-wrapper" id="scalabilityChartContainer">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Chart 2: Schema Columns Sent (Vertical Grouped Bar Chart) -->
+          <div class="chart-card" id="chart-card-cols">
+            <div class="chart-card-header">
+              <div class="chart-card-titles">
+                <h4 class="chart-card-title">Schema Columns Sent Across Databases (Compression)</h4>
+                <p class="chart-card-desc">Full schema columns in Baseline vs compact pruned subset in Proposed across benchmark databases (flight_2, car_1, world_1, hr_1, sakila_1).</p>
+              </div>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-dot baseline-dot"></span> Baseline Columns</span>
+                <span class="legend-item"><span class="legend-dot proposed-dot"></span> Proposed Columns</span>
+              </div>
+            </div>
+            <div class="chart-canvas-wrapper" id="schemaColsChartContainer">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Chart 3: Execution Accuracy (Vertical Grouped Bar Chart) -->
+          <div class="chart-card" id="chart-card-accuracy">
+            <div class="chart-card-header">
+              <div class="chart-card-titles">
+                <h4 class="chart-card-title">SQL Execution Accuracy Across Databases (Exact Result Match)</h4>
+                <p class="chart-card-desc">Percentage of generated SQL queries producing the exact golden SQLite ground-truth result. Vertical grouped bars show Proposed matching or outperforming Baseline.</p>
+              </div>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-dot baseline-dot"></span> Baseline Accuracy</span>
+                <span class="legend-item"><span class="legend-dot proposed-dot"></span> Proposed Accuracy</span>
+              </div>
+            </div>
+            <div class="chart-canvas-wrapper" id="accuracyChartContainer">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Chart 4: Information Retrieval Quality (Vertical Grouped Bar Chart) -->
+          <div class="chart-card" id="chart-card-ir">
+            <div class="chart-card-header">
+              <div class="chart-card-titles">
+                <h4 class="chart-card-title">Information Retrieval Metrics: Precision, Recall &amp; F1-Score</h4>
+                <p class="chart-card-desc">Evaluates schema column selection quality against ground-truth required columns. Proposed achieves 4.7x higher precision (+34.1 pts) and 3.4x higher F1 (+40.0 pts) while retaining 98% recall.</p>
+              </div>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-dot baseline-dot"></span> Baseline IR</span>
+                <span class="legend-item"><span class="legend-dot proposed-dot"></span> Proposed IR</span>
+              </div>
+            </div>
+            <div class="chart-canvas-wrapper" id="irMetricsChartContainer">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Chart 5: Latency & Turnaround Curve (Line Graph) -->
+          <div class="chart-card" id="chart-card-latency">
+            <div class="chart-card-header">
+              <div class="chart-card-titles">
+                <h4 class="chart-card-title">End-to-End Latency vs. Database Schema Scale</h4>
+                <p class="chart-card-desc">Total query turnaround time (linking + LLM inference + SQLite execution). Linking overhead is ~22ms, yielding consistent real-time response times.</p>
+              </div>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-dot baseline-dot"></span> Baseline Latency</span>
+                <span class="legend-item"><span class="legend-dot proposed-dot"></span> Proposed Latency</span>
+              </div>
+            </div>
+            <div class="chart-canvas-wrapper" id="latencyChartContainer">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Chart 6: Generation Throughput (Vertical Grouped Bar Chart) -->
+          <div class="chart-card" id="chart-card-throughput">
+            <div class="chart-card-header">
+              <div class="chart-card-titles">
+                <h4 class="chart-card-title">LLM Generation Throughput Across Databases (TPS)</h4>
+                <p class="chart-card-desc">Output token generation speed in tokens per second (TPS) across individual databases and overall benchmark average.</p>
+              </div>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-dot baseline-dot"></span> Baseline TPS</span>
+                <span class="legend-item"><span class="legend-dot proposed-dot"></span> Proposed TPS</span>
+              </div>
+            </div>
+            <div class="chart-canvas-wrapper" id="throughputChartContainer">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="modal-footer" style="justify-content: flex-end;">
+        <button class="btn btn-outline btn-sm" id="btnCloseAnalyticsModalFooter">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive SVG Chart Tooltip -->
+  <div class="chart-tooltip hidden" id="chartTooltip"></div>
 
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>

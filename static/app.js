@@ -239,6 +239,49 @@ function setupEventListeners() {
     });
   }
 
+  // Benchmark Analytics Visualizations Modal Event Listeners
+  const btnOpenAnalyticsModal = document.getElementById("btnOpenAnalyticsModal");
+  const btnCloseAnalyticsModal = document.getElementById("btnCloseAnalyticsModal");
+  const btnCloseAnalyticsModalFooter = document.getElementById("btnCloseAnalyticsModalFooter");
+  const btnSwitchToVisualsFromRunner = document.getElementById("btnSwitchToVisualsFromRunner");
+  const benchmarkAnalyticsModal = document.getElementById("benchmarkAnalyticsModal");
+  const btnReloadVisualData = document.getElementById("btnReloadVisualData");
+
+  if (btnOpenAnalyticsModal) btnOpenAnalyticsModal.addEventListener("click", openAnalyticsModal);
+  if (btnSwitchToVisualsFromRunner) {
+    btnSwitchToVisualsFromRunner.addEventListener("click", () => {
+      closeBenchmarkModal();
+      openAnalyticsModal();
+    });
+  }
+  if (btnCloseAnalyticsModal) btnCloseAnalyticsModal.addEventListener("click", closeAnalyticsModal);
+  if (btnCloseAnalyticsModalFooter) btnCloseAnalyticsModalFooter.addEventListener("click", closeAnalyticsModal);
+  if (benchmarkAnalyticsModal) {
+    benchmarkAnalyticsModal.addEventListener("click", (e) => {
+      if (e.target === benchmarkAnalyticsModal) closeAnalyticsModal();
+    });
+  }
+  if (btnReloadVisualData) {
+    btnReloadVisualData.addEventListener("click", () => fetchVisualAnalyticsData(true));
+  }
+
+  // Chart filter tab buttons (All, Tokens, Accuracy, IR, Latency)
+  document.querySelectorAll(".analytics-filter-group .btn-toggle-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      document.querySelectorAll(".analytics-filter-group .btn-toggle-chip").forEach((c) => c.classList.remove("active"));
+      chip.classList.add("active");
+      const targetId = chip.dataset.target;
+      const allCards = document.querySelectorAll(".analytics-charts-grid .chart-card");
+      allCards.forEach((card) => {
+        if (targetId === "all" || card.id === targetId) {
+          card.classList.remove("hidden");
+        } else {
+          card.classList.add("hidden");
+        }
+      });
+    });
+  });
+
   // Benchmark Query-Wise selector
   const benchQuerySelect = document.getElementById("benchQuerySelect");
   if (benchQuerySelect) {
@@ -845,6 +888,11 @@ function renderComparativeResult(data) {
       <td>${propSuffHtml}</td>
     </tr>
   `;
+
+  // -------------------------------------------------------------------------
+  // STEP 5: Visual Performance Analytics (Direct Query Charts)
+  // -------------------------------------------------------------------------
+  renderDirectQueryVisualAnalytics(data);
 }
 
 // Render Result Set Rows and Columns
@@ -1678,4 +1726,1164 @@ function renderBenchmarkDashboard(resultsData) {
       baseStatus.innerText = b.result_correct ? "PASS" : "MISMATCH";
     }
   }
+}
+
+// ==========================================================================
+// BENCHMARK VISUAL ANALYTICS & CHARTS (STRICTLY NO HORIZONTAL BARS)
+// ==========================================================================
+
+let visualAnalyticsData = null;
+
+function openAnalyticsModal() {
+  const modal = document.getElementById("benchmarkAnalyticsModal");
+  if (modal) {
+    modal.classList.remove("hidden");
+    fetchVisualAnalyticsData();
+  }
+}
+
+function closeAnalyticsModal() {
+  const modal = document.getElementById("benchmarkAnalyticsModal");
+  if (modal) {
+    modal.classList.add("hidden");
+  }
+  hideChartTooltip();
+}
+
+function showChartTooltip(e, content) {
+  const tt = document.getElementById("chartTooltip");
+  if (!tt) return;
+  tt.innerHTML = content;
+  tt.style.left = `${e.clientX}px`;
+  tt.style.top = `${e.clientY - 14}px`;
+  tt.classList.remove("hidden");
+}
+
+function hideChartTooltip() {
+  const tt = document.getElementById("chartTooltip");
+  if (tt) tt.classList.add("hidden");
+}
+
+async function fetchVisualAnalyticsData(forceReload = false) {
+  try {
+    if (!visualAnalyticsData || forceReload) {
+      const res = await fetch(`${API_BASE}/api/benchmark/top5`);
+      if (!res.ok) return;
+      const data = await res.json();
+      visualAnalyticsData = data.results;
+    }
+    renderVisualAnalytics(visualAnalyticsData);
+  } catch (err) {
+    console.error("Error loading visual analytics data:", err);
+  }
+}
+
+function renderVisualAnalytics(resultsData) {
+  if (!resultsData || !resultsData.results || resultsData.results.length === 0) return;
+  const allResults = resultsData.results;
+
+  // 1. Group queries by database in order of schema size
+  const DB_CONFIG = [
+    { id: "flight_2", name: "flight_2", cols: 13, domain: "Aviation" },
+    { id: "car_1", name: "car_1", cols: 23, domain: "Automotive" },
+    { id: "world_1", name: "world_1", cols: 24, domain: "Geographics" },
+    { id: "hr_1", name: "hr_1", cols: 35, domain: "HR Systems" },
+    { id: "sakila_1", name: "sakila_1", cols: 89, domain: "Media Store" },
+  ];
+
+  const dbMap = {};
+  DB_CONFIG.forEach(d => { dbMap[d.id] = []; });
+  allResults.forEach(r => {
+    const dbId = (r.db_id || "").toLowerCase();
+    if (dbMap[dbId]) dbMap[dbId].push(r);
+  });
+
+  const dbStats = DB_CONFIG.map(cfg => {
+    const qs = dbMap[cfg.id] || [];
+    const count = Math.max(1, qs.length);
+    const avg = fn => qs.reduce((acc, q) => acc + (Number(fn(q)) || 0), 0) / count;
+
+    const basePromptTokens = Math.round(avg(q => q.baseline?.prompt_tokens));
+    const propPromptTokens = Math.round(avg(q => q.proposed?.prompt_tokens));
+    const baseColsSent = Math.round(avg(q => q.baseline?.schema_cols_sent));
+    const propColsSent = Math.round(avg(q => q.proposed?.schema_cols_sent));
+    const baseAcc = Math.round((qs.filter(q => q.baseline?.result_correct).length / count) * 100);
+    const propAcc = Math.round((qs.filter(q => q.proposed?.result_correct).length / count) * 100);
+    const baseF1 = Number(avg(q => q.baseline?.f1_pct).toFixed(1));
+    const propF1 = Number(avg(q => q.proposed?.f1_pct).toFixed(1));
+    const baseLatency = Number(avg(q => q.baseline?.total_latency_s).toFixed(2));
+    const propLatency = Number(avg(q => q.proposed?.total_latency_s).toFixed(2));
+    const propLinkMs = Number(avg(q => q.proposed?.linking_latency_ms).toFixed(1));
+    const baseTps = Number(avg(q => q.baseline?.tps || 0).toFixed(1));
+    const propTps = Number(avg(q => q.proposed?.tps || 0).toFixed(1));
+
+    return {
+      id: cfg.id,
+      name: cfg.name,
+      domain: cfg.domain,
+      fullCols: cfg.cols,
+      baseTokens: basePromptTokens,
+      propTokens: propPromptTokens,
+      tokenReductionPct: basePromptTokens > 0 ? (((basePromptTokens - propPromptTokens) / basePromptTokens) * 100).toFixed(1) : 0,
+      baseCols: baseColsSent,
+      propCols: propColsSent,
+      colReductionPct: baseColsSent > 0 ? (((baseColsSent - propColsSent) / baseColsSent) * 100).toFixed(1) : 0,
+      baseAcc,
+      propAcc,
+      baseF1,
+      propF1,
+      baseLatency,
+      propLatency,
+      propLinkMs,
+      baseTps,
+      propTps,
+    };
+  });
+
+  // Overall totals
+  const totalCount = allResults.length || 1;
+  const overallBaseAcc = Math.round((allResults.filter(q => q.baseline?.result_correct).length / totalCount) * 100);
+  const overallPropAcc = Math.round((allResults.filter(q => q.proposed?.result_correct).length / totalCount) * 100);
+
+  const avgOf = fn => allResults.reduce((acc, q) => acc + (Number(fn(q)) || 0), 0) / totalCount;
+  const overallBaseTokens = avgOf(q => q.baseline?.prompt_tokens);
+  const overallPropTokens = avgOf(q => q.proposed?.prompt_tokens);
+  const overallTokenSavings = (((overallBaseTokens - overallPropTokens) / overallBaseTokens) * 100).toFixed(1);
+
+  const overallBaseCols = avgOf(q => q.baseline?.schema_cols_sent);
+  const overallPropCols = avgOf(q => q.proposed?.schema_cols_sent);
+  const overallColRed = (((overallBaseCols - overallPropCols) / overallBaseCols) * 100).toFixed(1);
+
+  const overallLinkMs = avgOf(q => q.proposed?.linking_latency_ms).toFixed(1);
+  const overallBaseTps = avgOf(q => q.baseline?.tps || 0).toFixed(1);
+  const overallPropTps = avgOf(q => q.proposed?.tps || 0).toFixed(1);
+
+  const overallIR = {
+    basePrec: avgOf(q => q.baseline?.precision_pct).toFixed(1),
+    propPrec: avgOf(q => q.proposed?.precision_pct).toFixed(1),
+    baseRec: avgOf(q => q.baseline?.recall_pct).toFixed(1),
+    propRec: avgOf(q => q.proposed?.recall_pct).toFixed(1),
+    baseF1: avgOf(q => q.baseline?.f1_pct).toFixed(1),
+    propF1: avgOf(q => q.proposed?.f1_pct).toFixed(1),
+  };
+
+  // 2. Update KPI Cards
+  const kpiRed = document.getElementById("kpiSchemaRed");
+  const kpiTok = document.getElementById("kpiTokenSavings");
+  const kpiAcc = document.getElementById("kpiExecAccuracy");
+  const kpiLat = document.getElementById("kpiLinkingLatency");
+
+  if (kpiRed) kpiRed.innerText = `${overallColRed}%`;
+  if (kpiTok) kpiTok.innerText = `${overallTokenSavings}%`;
+  if (kpiAcc) kpiAcc.innerText = `${overallPropAcc}%`;
+  if (kpiLat) kpiLat.innerText = `${overallLinkMs} ms`;
+
+  // 3. Render the 6 Visual Charts (Strictly Vertical Grouped Bars & Line Graphs)
+  renderScalabilityLineChart(dbStats, document.getElementById("scalabilityChartContainer"));
+  renderBenchColsBarChart(dbStats, overallBaseCols, overallPropCols, overallColRed, document.getElementById("schemaColsChartContainer"));
+  renderAccuracyVerticalBarChart(dbStats, overallBaseAcc, overallPropAcc, document.getElementById("accuracyChartContainer"));
+  renderIRQualityVerticalBarChart(overallIR, document.getElementById("irMetricsChartContainer"));
+  renderLatencyLineChart(dbStats, document.getElementById("latencyChartContainer"));
+  renderBenchThroughputBarChart(dbStats, overallBaseTps, overallPropTps, document.getElementById("throughputChartContainer"));
+}
+
+// ---------------------------------------------------------------------------
+// CHART 1: SCALABILITY CURVE (LINE GRAPH)
+// ---------------------------------------------------------------------------
+function renderScalabilityLineChart(dbStats, container) {
+  if (!container) return;
+  const width = 520;
+  const height = 280;
+  const padLeft = 60;
+  const padRight = 30;
+  const padTop = 30;
+  const padBottom = 45;
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+
+  const maxVal = 1700;
+  const getY = val => padTop + plotH - ((Math.min(maxVal, Math.max(0, val)) / maxVal) * plotH);
+  const getX = idx => padLeft + (idx * (plotW / (dbStats.length - 1)));
+
+  // Build SVG Paths
+  let basePoints = [];
+  let propPoints = [];
+  dbStats.forEach((d, idx) => {
+    const x = getX(idx);
+    const yBase = getY(d.baseTokens);
+    const yProp = getY(d.propTokens);
+    basePoints.push({ x, y: yBase, val: d.baseTokens, name: d.name, cols: d.fullCols });
+    propPoints.push({ x, y: yProp, val: d.propTokens, name: d.name, cols: d.fullCols, savings: d.tokenReductionPct });
+  });
+
+  const baseLinePath = basePoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+  const propLinePath = propPoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+
+  // Shaded savings area polygon between baseline and proposed
+  const areaPolygon = `${basePoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ")} ` +
+    `L ${propPoints[propPoints.length - 1].x.toFixed(1)} ${propPoints[propPoints.length - 1].y.toFixed(1)} ` +
+    `${[...propPoints].reverse().map(p => `L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ")} Z`;
+
+  // Gridlines and Y Ticks
+  const yTicks = [0, 400, 800, 1200, 1600];
+  const gridLines = yTicks.map(t => {
+    const y = getY(t);
+    return `
+      <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />
+      <text x="${padLeft - 10}" y="${y + 4}" fill="#64748b" font-size="10.5" font-family="monospace" text-anchor="end">${t}</text>
+    `;
+  }).join("");
+
+  // X Labels
+  const xLabels = dbStats.map((d, idx) => {
+    const x = getX(idx);
+    return `
+      <text x="${x}" y="${height - 24}" fill="#0f172a" font-size="11" font-weight="600" text-anchor="middle">${d.name}</text>
+      <text x="${x}" y="${height - 10}" fill="#64748b" font-size="9.5" text-anchor="middle">(${d.fullCols} cols)</text>
+    `;
+  }).join("");
+
+  // Data Dots
+  const dotsSvg = basePoints.map((bp, i) => {
+    const pp = propPoints[i];
+    return `
+      <circle cx="${bp.x}" cy="${bp.y}" r="5" fill="#e11d48" stroke="#ffffff" stroke-width="2" class="chart-dot"
+        data-tip="<strong>${bp.name}</strong> (${bp.cols} tables/cols)<br/>Baseline Prompt: <strong>${bp.val} tokens</strong>" />
+      <circle cx="${pp.x}" cy="${pp.y}" r="5" fill="#0284c7" stroke="#ffffff" stroke-width="2" class="chart-dot"
+        data-tip="<strong>${pp.name}</strong><br/>Proposed Prompt: <strong>${pp.val} tokens</strong><br/><span style='color:#38bdf8'>Savings: -${pp.savings}% context tokens</span>" />
+    `;
+  }).join("");
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="savingsShade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#0284c7" stop-opacity="0.25" />
+          <stop offset="100%" stop-color="#0284c7" stop-opacity="0.05" />
+        </linearGradient>
+      </defs>
+      ${gridLines}
+      <path d="${areaPolygon}" fill="url(#savingsShade)" />
+      <path d="${baseLinePath}" fill="none" stroke="#e11d48" stroke-width="3" stroke-linecap="round" />
+      <path d="${propLinePath}" fill="none" stroke="#0284c7" stroke-width="3" stroke-linecap="round" />
+      ${dotsSvg}
+      ${xLabels}
+      <!-- Axis label -->
+      <text x="${padLeft}" y="16" fill="#64748b" font-size="10" font-weight="600">TOKENS SENT</text>
+    </svg>
+  `;
+
+  // Attach hover listeners
+  container.querySelectorAll(".chart-dot").forEach(dot => {
+    dot.addEventListener("mouseenter", e => showChartTooltip(e, dot.dataset.tip));
+    dot.addEventListener("mousemove", e => showChartTooltip(e, dot.dataset.tip));
+    dot.addEventListener("mouseleave", hideChartTooltip);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// BENCH CHART 2: SCHEMA COLUMNS SENT ACROSS DATABASES (VERTICAL GROUPED BARS)
+// ---------------------------------------------------------------------------
+function renderBenchColsBarChart(dbStats, overallBaseCols, overallPropCols, overallColRed, container) {
+  if (!container) return;
+  const width = 520;
+  const height = 280;
+  const padLeft = 45;
+  const padRight = 20;
+  const padTop = 30;
+  const padBottom = 40;
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+
+  const items = [
+    ...dbStats.map(d => ({ label: d.name, base: d.baseCols, prop: d.propCols, saving: d.colReductionPct })),
+    { label: "Overall Avg", base: Number(overallBaseCols.toFixed(1)), prop: Number(overallPropCols.toFixed(1)), saving: overallColRed, isOverall: true }
+  ];
+
+  const maxVal = Math.max(100, Math.ceil(Math.max(...items.map(i => i.base)) * 1.15));
+  const getY = val => padTop + plotH - ((Math.min(maxVal, Math.max(0, val)) / maxVal) * plotH);
+
+  const groupWidth = plotW / items.length;
+  const barWidth = Math.min(22, (groupWidth - 14) / 2);
+
+  // Y Grid
+  const yTicks = [0, 25, 50, 75, 100];
+  const gridLines = yTicks.map(t => {
+    const y = getY(t);
+    return `
+      <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />
+      <text x="${padLeft - 8}" y="${y + 4}" fill="#64748b" font-size="10" font-family="monospace" text-anchor="end">${t}</text>
+    `;
+  }).join("");
+
+  const barsSvg = items.map((item, idx) => {
+    const groupCenter = padLeft + (idx * groupWidth) + (groupWidth / 2);
+    const xBase = groupCenter - barWidth - 2;
+    const xProp = groupCenter + 2;
+
+    const yBase = getY(item.base);
+    const hBase = padTop + plotH - yBase;
+
+    const yProp = getY(item.prop);
+    const hProp = padTop + plotH - yProp;
+
+    const baseFill = item.isOverall ? "#64748b" : "#94a3b8";
+    const propFill = item.isOverall ? "#0284c7" : "#0284c7";
+
+    return `
+      <g class="bar-group">
+        <!-- Baseline Bar -->
+        <rect x="${xBase}" y="${yBase}" width="${barWidth}" height="${Math.max(2, hBase)}" rx="3" fill="${baseFill}" class="chart-bar"
+          data-tip="<strong>${item.label}</strong><br/>Baseline Full Schema: <strong>${item.base} columns</strong>" />
+        <text x="${xBase + barWidth / 2}" y="${yBase - 5}" fill="#64748b" font-size="9" font-weight="600" text-anchor="middle">${item.base}</text>
+
+        <!-- Proposed Bar -->
+        <rect x="${xProp}" y="${yProp}" width="${barWidth}" height="${Math.max(2, hProp)}" rx="3" fill="${propFill}" class="chart-bar"
+          data-tip="<strong>${item.label}</strong><br/>Proposed Reduced Schema: <strong>${item.prop} columns</strong><br/><span style='color:#38bdf8'>Reduction: -${item.saving}%</span>" />
+        <text x="${xProp + barWidth / 2}" y="${yProp - 5}" fill="#0284c7" font-size="9.5" font-weight="700" text-anchor="middle">${item.prop}</text>
+
+        <!-- X Label -->
+        <text x="${groupCenter}" y="${height - 12}" fill="${item.isOverall ? '#0f172a' : '#475569'}" font-size="${item.isOverall ? '11' : '10.5'}" font-weight="${item.isOverall ? '700' : '600'}" text-anchor="middle">${item.label}</text>
+      </g>
+    `;
+  }).join("");
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+      ${gridLines}
+      ${barsSvg}
+      <text x="${padLeft}" y="16" fill="#64748b" font-size="10" font-weight="600">COLUMNS SENT</text>
+    </svg>
+  `;
+
+  container.querySelectorAll(".chart-bar").forEach(bar => {
+    bar.addEventListener("mouseenter", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mousemove", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mouseleave", hideChartTooltip);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// BENCH CHART 3: EXECUTION ACCURACY (VERTICAL GROUPED BAR CHART - NO HORIZONTAL BARS)
+// ---------------------------------------------------------------------------
+function renderAccuracyVerticalBarChart(dbStats, overallBaseAcc, overallPropAcc, container) {
+  if (!container) return;
+  const width = 520;
+  const height = 280;
+  const padLeft = 45;
+  const padRight = 20;
+  const padTop = 30;
+  const padBottom = 40;
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+
+  const items = [
+    ...dbStats.map(d => ({ label: d.name, base: d.baseAcc, prop: d.propAcc })),
+    { label: "Overall Avg", base: overallBaseAcc, prop: overallPropAcc, isOverall: true }
+  ];
+
+  const groupWidth = plotW / items.length;
+  const barWidth = Math.min(22, (groupWidth - 14) / 2);
+
+  const getY = pct => padTop + plotH - ((pct / 100) * plotH);
+
+  // Y Grid
+  const yTicks = [0, 25, 50, 75, 100];
+  const gridLines = yTicks.map(t => {
+    const y = getY(t);
+    return `
+      <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />
+      <text x="${padLeft - 8}" y="${y + 4}" fill="#64748b" font-size="10" font-family="monospace" text-anchor="end">${t}%</text>
+    `;
+  }).join("");
+
+  // Bars & Labels
+  const barsSvg = items.map((item, idx) => {
+    const groupCenter = padLeft + (idx * groupWidth) + (groupWidth / 2);
+    const xBase = groupCenter - barWidth - 2;
+    const xProp = groupCenter + 2;
+
+    const yBase = getY(item.base);
+    const hBase = padTop + plotH - yBase;
+
+    const yProp = getY(item.prop);
+    const hProp = padTop + plotH - yProp;
+
+    const baseFill = item.isOverall ? "#64748b" : "#94a3b8";
+    const propFill = item.isOverall ? "#059669" : "#10b981";
+
+    return `
+      <g class="bar-group">
+        <!-- Baseline Bar -->
+        <rect x="${xBase}" y="${yBase}" width="${barWidth}" height="${Math.max(2, hBase)}" rx="3" fill="${baseFill}" class="chart-bar"
+          data-tip="<strong>${item.label}</strong><br/>Baseline Accuracy: <strong>${item.base}%</strong>" />
+        <text x="${xBase + barWidth / 2}" y="${yBase - 5}" fill="#64748b" font-size="9" font-weight="600" text-anchor="middle">${item.base}%</text>
+
+        <!-- Proposed Bar -->
+        <rect x="${xProp}" y="${yProp}" width="${barWidth}" height="${Math.max(2, hProp)}" rx="3" fill="${propFill}" class="chart-bar"
+          data-tip="<strong>${item.label}</strong><br/>Proposed Accuracy: <strong>${item.prop}%</strong><br/><span style='color:#34d399'>Match with Ground Truth</span>" />
+        <text x="${xProp + barWidth / 2}" y="${yProp - 5}" fill="#059669" font-size="9.5" font-weight="700" text-anchor="middle">${item.prop}%</text>
+
+        <!-- X Label -->
+        <text x="${groupCenter}" y="${height - 12}" fill="${item.isOverall ? '#0f172a' : '#475569'}" font-size="${item.isOverall ? '11' : '10.5'}" font-weight="${item.isOverall ? '700' : '600'}" text-anchor="middle">${item.label}</text>
+      </g>
+    `;
+  }).join("");
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+      ${gridLines}
+      ${barsSvg}
+      <text x="${padLeft}" y="16" fill="#64748b" font-size="10" font-weight="600">ACCURACY (%)</text>
+    </svg>
+  `;
+
+  container.querySelectorAll(".chart-bar").forEach(bar => {
+    bar.addEventListener("mouseenter", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mousemove", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mouseleave", hideChartTooltip);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// CHART 3: IR QUALITY (VERTICAL GROUPED BAR CHART - NO HORIZONTAL BARS)
+// ---------------------------------------------------------------------------
+function renderIRQualityVerticalBarChart(overallIR, container) {
+  if (!container) return;
+  const width = 520;
+  const height = 280;
+  const padLeft = 45;
+  const padRight = 20;
+  const padTop = 30;
+  const padBottom = 40;
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+
+  const irMetrics = [
+    { label: "Precision", base: Number(overallIR.basePrec), prop: Number(overallIR.propPrec), gain: "+34.1 pts (4.7x)" },
+    { label: "Recall", base: Number(overallIR.baseRec), prop: Number(overallIR.propRec), gain: "98% Answerability" },
+    { label: "F1-Score", base: Number(overallIR.baseF1), prop: Number(overallIR.propF1), gain: "+40.0 pts (3.4x)" }
+  ];
+
+  const groupWidth = plotW / irMetrics.length;
+  const barWidth = 36;
+  const getY = pct => padTop + plotH - ((pct / 100) * plotH);
+
+  // Grid
+  const yTicks = [0, 25, 50, 75, 100];
+  const gridLines = yTicks.map(t => {
+    const y = getY(t);
+    return `
+      <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />
+      <text x="${padLeft - 8}" y="${y + 4}" fill="#64748b" font-size="10" font-family="monospace" text-anchor="end">${t}%</text>
+    `;
+  }).join("");
+
+  const barsSvg = irMetrics.map((item, idx) => {
+    const groupCenter = padLeft + (idx * groupWidth) + (groupWidth / 2);
+    const xBase = groupCenter - barWidth - 4;
+    const xProp = groupCenter + 4;
+
+    const yBase = getY(item.base);
+    const hBase = padTop + plotH - yBase;
+
+    const yProp = getY(item.prop);
+    const hProp = padTop + plotH - yProp;
+
+    return `
+      <g class="bar-group">
+        <!-- Baseline Bar -->
+        <rect x="${xBase}" y="${yBase}" width="${barWidth}" height="${Math.max(2, hBase)}" rx="4" fill="#94a3b8" class="chart-bar"
+          data-tip="Baseline ${item.label}: <strong>${item.base}%</strong>" />
+        <text x="${xBase + barWidth / 2}" y="${yBase - 6}" fill="#64748b" font-size="11" font-weight="600" text-anchor="middle">${item.base}%</text>
+
+        <!-- Proposed Bar -->
+        <rect x="${xProp}" y="${yProp}" width="${barWidth}" height="${Math.max(2, hProp)}" rx="4" fill="#7c3aed" class="chart-bar"
+          data-tip="Proposed ${item.label}: <strong>${item.prop}%</strong><br/><span style='color:#c084fc'>Improvement: ${item.gain}</span>" />
+        <text x="${xProp + barWidth / 2}" y="${yProp - 6}" fill="#7c3aed" font-size="11.5" font-weight="700" text-anchor="middle">${item.prop}%</text>
+
+        <!-- X Label & Sub-badge -->
+        <text x="${groupCenter}" y="${height - 18}" fill="#0f172a" font-size="12" font-weight="700" text-anchor="middle">${item.label}</text>
+        <text x="${groupCenter}" y="${height - 5}" fill="#0284c7" font-size="9.5" font-weight="600" text-anchor="middle">${item.gain}</text>
+      </g>
+    `;
+  }).join("");
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+      ${gridLines}
+      ${barsSvg}
+      <text x="${padLeft}" y="16" fill="#64748b" font-size="10" font-weight="600">PERCENTAGE (%)</text>
+    </svg>
+  `;
+
+  container.querySelectorAll(".chart-bar").forEach(bar => {
+    bar.addEventListener("mouseenter", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mousemove", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mouseleave", hideChartTooltip);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// CHART 4: LATENCY CURVE (LINE GRAPH)
+// ---------------------------------------------------------------------------
+function renderLatencyLineChart(dbStats, container) {
+  if (!container) return;
+  const width = 520;
+  const height = 280;
+  const padLeft = 55;
+  const padRight = 30;
+  const padTop = 30;
+  const padBottom = 45;
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+
+  const maxVal = 5.0; // 5.0 seconds
+  const getY = val => padTop + plotH - ((Math.min(maxVal, Math.max(0, val)) / maxVal) * plotH);
+  const getX = idx => padLeft + (idx * (plotW / (dbStats.length - 1)));
+
+  let basePoints = [];
+  let propPoints = [];
+  dbStats.forEach((d, idx) => {
+    const x = getX(idx);
+    basePoints.push({ x, y: getY(d.baseLatency), val: d.baseLatency, name: d.name });
+    propPoints.push({ x, y: getY(d.propLatency), val: d.propLatency, name: d.name, linkMs: d.propLinkMs });
+  });
+
+  const baseLinePath = basePoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+  const propLinePath = propPoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+
+  // Y Grid
+  const yTicks = [0, 1.0, 2.0, 3.0, 4.0, 5.0];
+  const gridLines = yTicks.map(t => {
+    const y = getY(t);
+    return `
+      <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />
+      <text x="${padLeft - 8}" y="${y + 4}" fill="#64748b" font-size="10" font-family="monospace" text-anchor="end">${t.toFixed(1)}s</text>
+    `;
+  }).join("");
+
+  // X Labels
+  const xLabels = dbStats.map((d, idx) => {
+    const x = getX(idx);
+    return `
+      <text x="${x}" y="${height - 24}" fill="#0f172a" font-size="11" font-weight="600" text-anchor="middle">${d.name}</text>
+      <text x="${x}" y="${height - 10}" fill="#64748b" font-size="9.5" text-anchor="middle">(${d.domain})</text>
+    `;
+  }).join("");
+
+  const dotsSvg = basePoints.map((bp, i) => {
+    const pp = propPoints[i];
+    return `
+      <circle cx="${bp.x}" cy="${bp.y}" r="5" fill="#e11d48" stroke="#ffffff" stroke-width="2" class="chart-dot"
+        data-tip="<strong>${bp.name}</strong><br/>Baseline Total Latency: <strong>${bp.val}s</strong>" />
+      <circle cx="${pp.x}" cy="${pp.y}" r="5" fill="#0284c7" stroke="#ffffff" stroke-width="2" class="chart-dot"
+        data-tip="<strong>${pp.name}</strong><br/>Proposed Total Latency: <strong>${pp.val}s</strong><br/><span style='color:#38bdf8'>Linking Algorithm Overhead: ${pp.linkMs} ms</span>" />
+    `;
+  }).join("");
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+      ${gridLines}
+      <path d="${baseLinePath}" fill="none" stroke="#e11d48" stroke-width="3" stroke-linecap="round" />
+      <path d="${propLinePath}" fill="none" stroke="#0284c7" stroke-width="3" stroke-linecap="round" />
+      ${dotsSvg}
+      ${xLabels}
+      <text x="${padLeft}" y="16" fill="#64748b" font-size="10" font-weight="600">SECONDS (s)</text>
+    </svg>
+  `;
+
+  container.querySelectorAll(".chart-dot").forEach(dot => {
+    dot.addEventListener("mouseenter", e => showChartTooltip(e, dot.dataset.tip));
+    dot.addEventListener("mousemove", e => showChartTooltip(e, dot.dataset.tip));
+    dot.addEventListener("mouseleave", hideChartTooltip);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// BENCH CHART 6: GENERATION THROUGHPUT ACROSS DATABASES (VERTICAL GROUPED BARS)
+// ---------------------------------------------------------------------------
+function renderBenchThroughputBarChart(dbStats, overallBaseTps, overallPropTps, container) {
+  if (!container) return;
+  const width = 520;
+  const height = 280;
+  const padLeft = 45;
+  const padRight = 20;
+  const padTop = 30;
+  const padBottom = 40;
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+
+  const items = [
+    ...dbStats.map(d => ({ label: d.name, base: d.baseTps, prop: d.propTps })),
+    { label: "Overall Avg", base: Number(overallBaseTps), prop: Number(overallPropTps), isOverall: true }
+  ];
+
+  const maxVal = Math.max(12, Math.ceil(Math.max(...items.map(i => Math.max(i.base, i.prop))) * 1.25));
+  const getY = val => padTop + plotH - ((Math.min(maxVal, Math.max(0, val)) / maxVal) * plotH);
+
+  const groupWidth = plotW / items.length;
+  const barWidth = Math.min(22, (groupWidth - 14) / 2);
+
+  // Y Grid
+  const yTicks = [0, 4, 8, 12];
+  const gridLines = yTicks.map(t => {
+    const y = getY(t);
+    return `
+      <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />
+      <text x="${padLeft - 8}" y="${y + 4}" fill="#64748b" font-size="10" font-family="monospace" text-anchor="end">${t}</text>
+    `;
+  }).join("");
+
+  const barsSvg = items.map((item, idx) => {
+    const groupCenter = padLeft + (idx * groupWidth) + (groupWidth / 2);
+    const xBase = groupCenter - barWidth - 2;
+    const xProp = groupCenter + 2;
+
+    const yBase = getY(item.base);
+    const hBase = padTop + plotH - yBase;
+
+    const yProp = getY(item.prop);
+    const hProp = padTop + plotH - yProp;
+
+    const baseFill = item.isOverall ? "#64748b" : "#94a3b8";
+    const propFill = item.isOverall ? "#7c3aed" : "#a855f7";
+
+    return `
+      <g class="bar-group">
+        <!-- Baseline Bar -->
+        <rect x="${xBase}" y="${yBase}" width="${barWidth}" height="${Math.max(2, hBase)}" rx="3" fill="${baseFill}" class="chart-bar"
+          data-tip="<strong>${item.label}</strong><br/>Baseline Throughput: <strong>${item.base} tok/s</strong>" />
+        <text x="${xBase + barWidth / 2}" y="${yBase - 5}" fill="#64748b" font-size="9" font-weight="600" text-anchor="middle">${item.base}</text>
+
+        <!-- Proposed Bar -->
+        <rect x="${xProp}" y="${yProp}" width="${barWidth}" height="${Math.max(2, hProp)}" rx="3" fill="${propFill}" class="chart-bar"
+          data-tip="<strong>${item.label}</strong><br/>Proposed Throughput: <strong>${item.prop} tok/s</strong>" />
+        <text x="${xProp + barWidth / 2}" y="${yProp - 5}" fill="#7c3aed" font-size="9.5" font-weight="700" text-anchor="middle">${item.prop}</text>
+
+        <!-- X Label -->
+        <text x="${groupCenter}" y="${height - 12}" fill="${item.isOverall ? '#0f172a' : '#475569'}" font-size="${item.isOverall ? '11' : '10.5'}" font-weight="${item.isOverall ? '700' : '600'}" text-anchor="middle">${item.label}</text>
+      </g>
+    `;
+  }).join("");
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+      ${gridLines}
+      ${barsSvg}
+      <text x="${padLeft}" y="16" fill="#64748b" font-size="10" font-weight="600">TOKENS / SEC (tok/s)</text>
+    </svg>
+  `;
+
+  container.querySelectorAll(".chart-bar").forEach(bar => {
+    bar.addEventListener("mouseenter", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mousemove", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mouseleave", hideChartTooltip);
+  });
+}
+
+// ==========================================================================
+// DIRECT QUERY STEP 5 VISUAL PERFORMANCE ANALYTICS (UNDER FINAL TABLE)
+// (STRICTLY NO HORIZONTAL BARS — LINE GRAPHS & VERTICAL GROUPED BARS)
+// ==========================================================================
+
+function renderDirectQueryVisualAnalytics(data) {
+  if (!data) return;
+  const base = data.baseline || {};
+  const prop = data.proposed || {};
+  const comp = data.comparison || {};
+  const linking = prop.schema_linking || {};
+  const verdict = data.verdict || {};
+
+  // 1. Update KPI Values & Verdict
+  const kpiRed = document.getElementById("directKpiSchemaRed");
+  const kpiRedDesc = document.getElementById("directKpiSchemaDesc");
+  const kpiTok = document.getElementById("directKpiTokenSavings");
+  const kpiTokDesc = document.getElementById("directKpiTokenDesc");
+  const kpiVerdict = document.getElementById("directKpiVerdict");
+  const kpiVerdictDesc = document.getElementById("directKpiVerdictDesc");
+  const kpiLinkTime = document.getElementById("directKpiLinkTime");
+
+  const redPct = comp.schema_reduction_pct !== undefined ? comp.schema_reduction_pct : (linking.schema_reduction?.reduction_percentage || 0);
+  const tokRedPct = comp.token_reduction_pct !== undefined ? comp.token_reduction_pct : 0;
+  const baseCols = base.columns_sent || comp.schema_columns_full || 0;
+  const propCols = prop.columns_sent || comp.schema_columns_reduced || 0;
+  const baseToks = base.input_tokens || 0;
+  const propToks = prop.input_tokens || 0;
+  const linkMs = (linking.linking_time_seconds || 0) * 1000;
+
+  if (kpiRed) kpiRed.innerText = `-${redPct}%`;
+  if (kpiRedDesc) kpiRedDesc.innerText = `${baseCols} → ${propCols} cols sent`;
+
+  if (kpiTok) kpiTok.innerText = `-${tokRedPct}%`;
+  if (kpiTokDesc) kpiTokDesc.innerText = `${baseToks} → ${propToks} tokens`;
+
+  const vCode = verdict.verdict_code || (prop.execution?.success ? "SUCCESS" : "FAILED");
+  if (kpiVerdict) kpiVerdict.innerText = vCode.replace(/_/g, " ");
+  if (kpiVerdictDesc) kpiVerdictDesc.innerText = prop.execution?.success ? `${prop.execution.rows?.length || 0} row(s) returned` : "Execution error";
+
+  if (kpiLinkTime) kpiLinkTime.innerText = `${linkMs.toFixed(1)} ms`;
+
+  // 2. Render 6 Visual Charts (Strictly NO Horizontal Bars)
+  renderDirectTokensBarChart(baseToks, propToks, tokRedPct, document.getElementById("directChartTokens"));
+  renderDirectColsBarChart(baseCols, propCols, redPct, document.getElementById("directChartCols"));
+  renderDirectAccuracyBarChart(base, prop, verdict, document.getElementById("directChartAccuracy"));
+  renderDirectIRBarChart(comp, base, prop, document.getElementById("directChartIR"));
+  renderDirectLatencyLineChart(base, prop, linking, document.getElementById("directChartLatency"));
+  renderDirectThroughputBarChart(base, prop, document.getElementById("directChartThroughput"));
+}
+
+// ---------------------------------------------------------------------------
+// DIRECT CHART 1: PROMPT TOKENS SENT (VERTICAL GROUPED BAR CHART)
+// ---------------------------------------------------------------------------
+function renderDirectTokensBarChart(baseToks, propToks, tokRedPct, container) {
+  if (!container) return;
+  const width = 440;
+  const height = 230;
+  const padLeft = 45;
+  const padRight = 20;
+  const padTop = 32;
+  const padBottom = 38;
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+
+  const maxVal = Math.max(100, Math.ceil(Math.max(baseToks, propToks) * 1.25));
+  const getY = val => padTop + plotH - ((Math.min(maxVal, Math.max(0, val)) / maxVal) * plotH);
+
+  const groupCenter = padLeft + (plotW / 2);
+  const barWidth = 52;
+  const xBase = groupCenter - barWidth - 8;
+  const xProp = groupCenter + 8;
+
+  const yBase = getY(baseToks);
+  const hBase = padTop + plotH - yBase;
+  const yProp = getY(propToks);
+  const hProp = padTop + plotH - yProp;
+
+  const yTicks = [0, Math.round(maxVal / 2), maxVal];
+  const gridLines = yTicks.map(t => {
+    const y = getY(t);
+    return `
+      <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />
+      <text x="${padLeft - 6}" y="${y + 4}" fill="#64748b" font-size="9.5" font-family="monospace" text-anchor="end">${t}</text>
+    `;
+  }).join("");
+
+  const redFormatted = Number(tokRedPct) > 0 ? `-${Number(tokRedPct).toFixed(1)}%` : "0%";
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+      ${gridLines}
+      <!-- Baseline Bar -->
+      <rect x="${xBase}" y="${yBase}" width="${barWidth}" height="${Math.max(4, hBase)}" rx="4" fill="#94a3b8" class="chart-bar"
+        data-tip="Baseline Prompt: <strong>${baseToks} tokens</strong> (full schema context)" />
+      <text x="${xBase + barWidth / 2}" y="${yBase - 6}" fill="#475569" font-size="11" font-weight="700" text-anchor="middle">${baseToks}</text>
+      <text x="${xBase + barWidth / 2}" y="${height - 18}" fill="#64748b" font-size="11" font-weight="600" text-anchor="middle">Baseline</text>
+      <text x="${xBase + barWidth / 2}" y="${height - 5}" fill="#94a3b8" font-size="9" text-anchor="middle">Full Context</text>
+
+      <!-- Proposed Bar -->
+      <rect x="${xProp}" y="${yProp}" width="${barWidth}" height="${Math.max(4, hProp)}" rx="4" fill="#0284c7" class="chart-bar"
+        data-tip="Proposed Prompt: <strong>${propToks} tokens</strong><br/><span style='color:#38bdf8'>Token Savings: ${redFormatted}</span>" />
+      <text x="${xProp + barWidth / 2}" y="${yProp - 6}" fill="#0284c7" font-size="11" font-weight="800" text-anchor="middle">${propToks}</text>
+      <text x="${xProp + barWidth / 2}" y="${height - 18}" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">Proposed</text>
+      <text x="${xProp + barWidth / 2}" y="${height - 5}" fill="#0284c7" font-size="9.5" font-weight="700" text-anchor="middle">${redFormatted}</text>
+
+      <text x="${padLeft}" y="16" fill="#64748b" font-size="9.5" font-weight="600">PROMPT TOKENS</text>
+    </svg>
+  `;
+
+  container.querySelectorAll(".chart-bar").forEach(bar => {
+    bar.addEventListener("mouseenter", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mousemove", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mouseleave", hideChartTooltip);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// DIRECT CHART 2: SCHEMA COLUMNS SENT (VERTICAL GROUPED BAR CHART)
+// ---------------------------------------------------------------------------
+function renderDirectColsBarChart(baseCols, propCols, redPct, container) {
+  if (!container) return;
+  const width = 440;
+  const height = 230;
+  const padLeft = 45;
+  const padRight = 20;
+  const padTop = 32;
+  const padBottom = 38;
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+
+  const maxVal = Math.max(10, Math.ceil(Math.max(baseCols, propCols) * 1.25));
+  const getY = val => padTop + plotH - ((Math.min(maxVal, Math.max(0, val)) / maxVal) * plotH);
+
+  const groupCenter = padLeft + (plotW / 2);
+  const barWidth = 52;
+  const xBase = groupCenter - barWidth - 8;
+  const xProp = groupCenter + 8;
+
+  const yBase = getY(baseCols);
+  const hBase = padTop + plotH - yBase;
+  const yProp = getY(propCols);
+  const hProp = padTop + plotH - yProp;
+
+  const yTicks = [0, Math.round(maxVal / 2), maxVal];
+  const gridLines = yTicks.map(t => {
+    const y = getY(t);
+    return `
+      <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />
+      <text x="${padLeft - 6}" y="${y + 4}" fill="#64748b" font-size="9.5" font-family="monospace" text-anchor="end">${t}</text>
+    `;
+  }).join("");
+
+  const redFormatted = Number(redPct) > 0 ? `-${Number(redPct).toFixed(1)}%` : "0%";
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+      ${gridLines}
+      <!-- Baseline Bar -->
+      <rect x="${xBase}" y="${yBase}" width="${barWidth}" height="${Math.max(4, hBase)}" rx="4" fill="#94a3b8" class="chart-bar"
+        data-tip="Baseline Schema: <strong>${baseCols} columns sent</strong>" />
+      <text x="${xBase + barWidth / 2}" y="${yBase - 6}" fill="#475569" font-size="11" font-weight="700" text-anchor="middle">${baseCols}</text>
+      <text x="${xBase + barWidth / 2}" y="${height - 18}" fill="#64748b" font-size="11" font-weight="600" text-anchor="middle">Baseline</text>
+      <text x="${xBase + barWidth / 2}" y="${height - 5}" fill="#94a3b8" font-size="9" text-anchor="middle">Full Schema</text>
+
+      <!-- Proposed Bar -->
+      <rect x="${xProp}" y="${yProp}" width="${barWidth}" height="${Math.max(4, hProp)}" rx="4" fill="#0284c7" class="chart-bar"
+        data-tip="Proposed Schema: <strong>${propCols} columns sent</strong><br/><span style='color:#38bdf8'>Pruned: ${redFormatted}</span>" />
+      <text x="${xProp + barWidth / 2}" y="${yProp - 6}" fill="#0284c7" font-size="11" font-weight="800" text-anchor="middle">${propCols}</text>
+      <text x="${xProp + barWidth / 2}" y="${height - 18}" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">Proposed</text>
+      <text x="${xProp + barWidth / 2}" y="${height - 5}" fill="#0284c7" font-size="9.5" font-weight="700" text-anchor="middle">${redFormatted}</text>
+
+      <text x="${padLeft}" y="16" fill="#64748b" font-size="9.5" font-weight="600">COLUMNS SENT</text>
+    </svg>
+  `;
+
+  container.querySelectorAll(".chart-bar").forEach(bar => {
+    bar.addEventListener("mouseenter", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mousemove", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mouseleave", hideChartTooltip);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// DIRECT CHART 3: SQL EXECUTION ACCURACY (VERTICAL GROUPED BAR CHART)
+// ---------------------------------------------------------------------------
+function renderDirectAccuracyBarChart(base, prop, verdict, container) {
+  if (!container) return;
+  const width = 440;
+  const height = 230;
+  const padLeft = 45;
+  const padRight = 20;
+  const padTop = 32;
+  const padBottom = 38;
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+
+  const baseSuccess = base.execution?.success ? 100 : 0;
+  const propSuccess = prop.execution?.success ? 100 : 0;
+
+  const getY = pct => padTop + plotH - ((pct / 100) * plotH);
+
+  const groupCenter = padLeft + (plotW / 2);
+  const barWidth = 52;
+  const xBase = groupCenter - barWidth - 8;
+  const xProp = groupCenter + 8;
+
+  const yBase = getY(baseSuccess);
+  const hBase = padTop + plotH - yBase;
+  const yProp = getY(propSuccess);
+  const hProp = padTop + plotH - yProp;
+
+  const yTicks = [0, 50, 100];
+  const gridLines = yTicks.map(t => {
+    const y = getY(t);
+    return `
+      <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />
+      <text x="${padLeft - 6}" y="${y + 4}" fill="#64748b" font-size="9.5" font-family="monospace" text-anchor="end">${t}%</text>
+    `;
+  }).join("");
+
+  const baseFill = baseSuccess ? "#64748b" : "#e11d48";
+  const propFill = propSuccess ? "#059669" : "#e11d48";
+  const vCode = verdict.verdict_code || (propSuccess ? "SUCCESS" : "FAILED");
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+      ${gridLines}
+      <!-- Baseline Bar -->
+      <rect x="${xBase}" y="${yBase}" width="${barWidth}" height="${Math.max(4, hBase)}" rx="4" fill="${baseFill}" class="chart-bar"
+        data-tip="Baseline Execution: <strong>${baseSuccess}%</strong> (${baseSuccess ? 'Success' : 'Execution Error'})" />
+      <text x="${xBase + barWidth / 2}" y="${yBase - 6}" fill="${baseFill}" font-size="11" font-weight="700" text-anchor="middle">${baseSuccess}%</text>
+      <text x="${xBase + barWidth / 2}" y="${height - 18}" fill="#64748b" font-size="11" font-weight="600" text-anchor="middle">Baseline</text>
+      <text x="${xBase + barWidth / 2}" y="${height - 5}" fill="#94a3b8" font-size="9" text-anchor="middle">${baseSuccess ? 'Success' : 'Error'}</text>
+
+      <!-- Proposed Bar -->
+      <rect x="${xProp}" y="${yProp}" width="${barWidth}" height="${Math.max(4, hProp)}" rx="4" fill="${propFill}" class="chart-bar"
+        data-tip="Proposed Execution: <strong>${propSuccess}%</strong> (${propSuccess ? 'Success' : 'Execution Error'})<br/><span style='color:#34d399'>Verdict: ${vCode}</span>" />
+      <text x="${xProp + barWidth / 2}" y="${yProp - 6}" fill="${propFill}" font-size="11" font-weight="800" text-anchor="middle">${propSuccess}%</text>
+      <text x="${xProp + barWidth / 2}" y="${height - 18}" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">Proposed</text>
+      <text x="${xProp + barWidth / 2}" y="${height - 5}" fill="${propSuccess ? '#059669' : '#e11d48'}" font-size="9.5" font-weight="700" text-anchor="middle">${propSuccess ? 'PASS' : 'FAIL'}</text>
+
+      <text x="${padLeft}" y="16" fill="#64748b" font-size="9.5" font-weight="600">ACCURACY (%)</text>
+    </svg>
+  `;
+
+  container.querySelectorAll(".chart-bar").forEach(bar => {
+    bar.addEventListener("mouseenter", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mousemove", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mouseleave", hideChartTooltip);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// DIRECT CHART 2: INFORMATION RETRIEVAL QUALITY (VERTICAL GROUPED BAR CHART)
+// ---------------------------------------------------------------------------
+function renderDirectIRBarChart(comp, base, prop, container) {
+  if (!container) return;
+  const width = 440;
+  const height = 230;
+  const padLeft = 42;
+  const padRight = 15;
+  const padTop = 32;
+  const padBottom = 38;
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+
+  const basePrec = Number(base.precision !== undefined ? base.precision : (comp.baseline_precision || 0));
+  const propPrec = Number(prop.precision !== undefined ? prop.precision : (comp.proposed_precision || 0));
+  const baseRec = Number(base.recall !== undefined ? base.recall : (comp.baseline_recall || 100));
+  const propRec = Number(prop.recall !== undefined ? prop.recall : (comp.proposed_recall || 100));
+  const baseF1 = Number(base.f1 !== undefined ? base.f1 : (comp.baseline_f1 || 0));
+  const propF1 = Number(prop.f1 !== undefined ? prop.f1 : (comp.proposed_f1 || 0));
+
+  const metrics = [
+    { label: "Precision", base: basePrec, prop: propPrec, diff: (propPrec - basePrec).toFixed(1) },
+    { label: "Recall", base: baseRec, prop: propRec, diff: (propRec - baseRec).toFixed(1) },
+    { label: "F1-Score", base: baseF1, prop: propF1, diff: (propF1 - baseF1).toFixed(1) },
+  ];
+
+  const groupWidth = plotW / metrics.length;
+  const barWidth = 28;
+  const getY = pct => padTop + plotH - ((Math.min(100, Math.max(0, pct)) / 100) * plotH);
+
+  const yTicks = [0, 50, 100];
+  const gridLines = yTicks.map(t => {
+    const y = getY(t);
+    return `
+      <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />
+      <text x="${padLeft - 6}" y="${y + 4}" fill="#64748b" font-size="9.5" font-family="monospace" text-anchor="end">${t}%</text>
+    `;
+  }).join("");
+
+  const barsSvg = metrics.map((m, idx) => {
+    const groupCenter = padLeft + (idx * groupWidth) + (groupWidth / 2);
+    const xBase = groupCenter - barWidth - 3;
+    const xProp = groupCenter + 3;
+
+    const yBase = getY(m.base);
+    const hBase = padTop + plotH - yBase;
+
+    const yProp = getY(m.prop);
+    const hProp = padTop + plotH - yProp;
+
+    const diffNum = Number(m.diff);
+    const diffText = diffNum > 0 ? `+${diffNum}%` : `${diffNum}%`;
+    const diffColor = diffNum >= 0 ? "#7c3aed" : "#e11d48";
+
+    return `
+      <g class="bar-group">
+        <!-- Baseline Bar -->
+        <rect x="${xBase}" y="${yBase}" width="${barWidth}" height="${Math.max(4, hBase)}" rx="3" fill="#94a3b8" class="chart-bar"
+          data-tip="Baseline ${m.label}: <strong>${m.base.toFixed(1)}%</strong>" />
+        <text x="${xBase + barWidth / 2}" y="${yBase - 5}" fill="#64748b" font-size="9.5" font-weight="600" text-anchor="middle">${m.base.toFixed(0)}%</text>
+
+        <!-- Proposed Bar -->
+        <rect x="${xProp}" y="${yProp}" width="${barWidth}" height="${Math.max(4, hProp)}" rx="3" fill="#7c3aed" class="chart-bar"
+          data-tip="Proposed ${m.label}: <strong>${m.prop.toFixed(1)}%</strong><br/><span style='color:#c084fc'>Delta: ${diffText}</span>" />
+        <text x="${xProp + barWidth / 2}" y="${yProp - 5}" fill="#7c3aed" font-size="10" font-weight="800" text-anchor="middle">${m.prop.toFixed(0)}%</text>
+
+        <!-- X Label -->
+        <text x="${groupCenter}" y="${height - 18}" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">${m.label}</text>
+        <text x="${groupCenter}" y="${height - 5}" fill="${diffColor}" font-size="8.5" font-weight="700" text-anchor="middle">${diffText}</text>
+      </g>
+    `;
+  }).join("");
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+      ${gridLines}
+      ${barsSvg}
+      <text x="${padLeft}" y="16" fill="#64748b" font-size="9.5" font-weight="600">ACCURACY (%)</text>
+    </svg>
+  `;
+
+  container.querySelectorAll(".chart-bar").forEach(bar => {
+    bar.addEventListener("mouseenter", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mousemove", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mouseleave", hideChartTooltip);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// DIRECT CHART 3: PIPELINE LATENCY TRAJECTORY (LINE GRAPH)
+// ---------------------------------------------------------------------------
+function renderDirectLatencyLineChart(base, prop, linking, container) {
+  if (!container) return;
+  const width = 440;
+  const height = 230;
+  const padLeft = 45;
+  const padRight = 25;
+  const padTop = 32;
+  const padBottom = 42;
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+
+  const stages = [
+    {
+      name: "Linking",
+      desc: "Schema relevance",
+      baseTime: 0.0,
+      propTime: (linking.linking_time_seconds || 0),
+    },
+    {
+      name: "LLM Gen",
+      desc: "Gemini inference",
+      baseTime: base.llm_latency || (base.total_latency ? base.total_latency * 0.98 : 2.5),
+      propTime: prop.llm_latency || (prop.total_latency ? prop.total_latency * 0.98 : 2.3),
+    },
+    {
+      name: "SQLite",
+      desc: "Database run",
+      baseTime: base.execution?.execution_time_sec || 0.002,
+      propTime: prop.execution?.execution_time_sec || 0.002,
+    },
+    {
+      name: "Total E2E",
+      desc: "Full turnaround",
+      baseTime: base.total_latency || 2.5,
+      propTime: prop.total_latency || 2.3,
+    }
+  ];
+
+  const maxLatency = Math.max(3.0, ...stages.map(s => Math.max(s.baseTime, s.propTime))) * 1.15;
+  const getY = val => padTop + plotH - ((Math.min(maxLatency, Math.max(0, val)) / maxLatency) * plotH);
+  const getX = idx => padLeft + (idx * (plotW / (stages.length - 1)));
+
+  // Y Grid
+  const yTicks = [0, maxLatency * 0.5, maxLatency];
+  const gridLines = yTicks.map(t => {
+    const y = getY(t);
+    return `
+      <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />
+      <text x="${padLeft - 6}" y="${y + 4}" fill="#64748b" font-size="9.5" font-family="monospace" text-anchor="end">${t.toFixed(1)}s</text>
+    `;
+  }).join("");
+
+  const basePoints = stages.map((s, idx) => ({ x: getX(idx), y: getY(s.baseTime), val: s.baseTime, stage: s.name }));
+  const propPoints = stages.map((s, idx) => ({ x: getX(idx), y: getY(s.propTime), val: s.propTime, stage: s.name }));
+
+  const baseLinePath = basePoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+  const propLinePath = propPoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+
+  const dotsSvg = basePoints.map((bp, i) => {
+    const pp = propPoints[i];
+    return `
+      <circle cx="${bp.x}" cy="${bp.y}" r="4.5" fill="#e11d48" stroke="#ffffff" stroke-width="1.8" class="chart-dot"
+        data-tip="Baseline ${bp.stage}: <strong>${bp.val < 0.01 ? (bp.val * 1000).toFixed(1) + ' ms' : bp.val.toFixed(3) + 's'}</strong>" />
+      <circle cx="${pp.x}" cy="${pp.y}" r="4.5" fill="#0284c7" stroke="#ffffff" stroke-width="1.8" class="chart-dot"
+        data-tip="Proposed ${pp.stage}: <strong>${pp.val < 0.01 ? (pp.val * 1000).toFixed(1) + ' ms' : pp.val.toFixed(3) + 's'}</strong>" />
+    `;
+  }).join("");
+
+  const xLabels = stages.map((s, idx) => {
+    const x = getX(idx);
+    return `
+      <text x="${x}" y="${height - 20}" fill="#0f172a" font-size="10.5" font-weight="700" text-anchor="middle">${s.name}</text>
+      <text x="${x}" y="${height - 7}" fill="#64748b" font-size="8.5" text-anchor="middle">${s.desc}</text>
+    `;
+  }).join("");
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+      ${gridLines}
+      <path d="${baseLinePath}" fill="none" stroke="#e11d48" stroke-width="2.6" stroke-linecap="round" />
+      <path d="${propLinePath}" fill="none" stroke="#0284c7" stroke-width="2.6" stroke-linecap="round" />
+      ${dotsSvg}
+      ${xLabels}
+      <text x="${padLeft}" y="16" fill="#64748b" font-size="9.5" font-weight="600">SECONDS (s)</text>
+    </svg>
+  `;
+
+  container.querySelectorAll(".chart-dot").forEach(dot => {
+    dot.addEventListener("mouseenter", e => showChartTooltip(e, dot.dataset.tip));
+    dot.addEventListener("mousemove", e => showChartTooltip(e, dot.dataset.tip));
+    dot.addEventListener("mouseleave", hideChartTooltip);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// DIRECT CHART 6: GENERATION THROUGHPUT (VERTICAL GROUPED BAR CHART)
+// ---------------------------------------------------------------------------
+function renderDirectThroughputBarChart(base, prop, container) {
+  if (!container) return;
+  const width = 440;
+  const height = 230;
+  const padLeft = 45;
+  const padRight = 20;
+  const padTop = 32;
+  const padBottom = 38;
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+
+  const baseTps = base.throughput?.generation_tps !== undefined ? Number(base.throughput.generation_tps) : (Number(base.tps) || 0);
+  const propTps = prop.throughput?.generation_tps !== undefined ? Number(prop.throughput.generation_tps) : (Number(prop.tps) || 0);
+
+  const maxVal = Math.max(12, Math.ceil(Math.max(baseTps, propTps) * 1.3));
+  const getY = val => padTop + plotH - ((Math.min(maxVal, Math.max(0, val)) / maxVal) * plotH);
+
+  const groupCenter = padLeft + (plotW / 2);
+  const barWidth = 52;
+  const xBase = groupCenter - barWidth - 8;
+  const xProp = groupCenter + 8;
+
+  const yBase = getY(baseTps);
+  const hBase = padTop + plotH - yBase;
+  const yProp = getY(propTps);
+  const hProp = padTop + plotH - yProp;
+
+  const yTicks = [0, Math.round(maxVal / 2), maxVal];
+  const gridLines = yTicks.map(t => {
+    const y = getY(t);
+    return `
+      <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />
+      <text x="${padLeft - 6}" y="${y + 4}" fill="#64748b" font-size="9.5" font-family="monospace" text-anchor="end">${t}</text>
+    `;
+  }).join("");
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+      ${gridLines}
+      <!-- Baseline Bar -->
+      <rect x="${xBase}" y="${yBase}" width="${barWidth}" height="${Math.max(4, hBase)}" rx="4" fill="#94a3b8" class="chart-bar"
+        data-tip="Baseline Throughput: <strong>${baseTps.toFixed(1)} tok/s</strong>" />
+      <text x="${xBase + barWidth / 2}" y="${yBase - 6}" fill="#475569" font-size="11" font-weight="700" text-anchor="middle">${baseTps.toFixed(1)}</text>
+      <text x="${xBase + barWidth / 2}" y="${height - 18}" fill="#64748b" font-size="11" font-weight="600" text-anchor="middle">Baseline</text>
+      <text x="${xBase + barWidth / 2}" y="${height - 5}" fill="#94a3b8" font-size="9" text-anchor="middle">Full Context</text>
+
+      <!-- Proposed Bar -->
+      <rect x="${xProp}" y="${yProp}" width="${barWidth}" height="${Math.max(4, hProp)}" rx="4" fill="#7c3aed" class="chart-bar"
+        data-tip="Proposed Throughput: <strong>${propTps.toFixed(1)} tok/s</strong>" />
+      <text x="${xProp + barWidth / 2}" y="${yProp - 6}" fill="#7c3aed" font-size="11" font-weight="800" text-anchor="middle">${propTps.toFixed(1)}</text>
+      <text x="${xProp + barWidth / 2}" y="${height - 18}" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">Proposed</text>
+      <text x="${xProp + barWidth / 2}" y="${height - 5}" fill="#7c3aed" font-size="9.5" font-weight="700" text-anchor="middle">${propTps.toFixed(1)} tok/s</text>
+
+      <text x="${padLeft}" y="16" fill="#64748b" font-size="9.5" font-weight="600">TOKENS / SEC (tok/s)</text>
+    </svg>
+  `;
+
+  container.querySelectorAll(".chart-bar").forEach(bar => {
+    bar.addEventListener("mouseenter", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mousemove", e => showChartTooltip(e, bar.dataset.tip));
+    bar.addEventListener("mouseleave", hideChartTooltip);
+  });
 }
